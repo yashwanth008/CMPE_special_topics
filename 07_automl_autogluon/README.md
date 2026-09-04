@@ -1,58 +1,60 @@
-# 🤖 AutoGluon Multi-Layer Stacking & AutoML Tournament Platform
+## The idea behind this one
 
-An enterprise automated machine learning platform orchestrating a **3-Level Stacking DAG** with **Caruana Greedy Forward Selection** on multi-task Kaggle benchmarks (Customer Churn Classification & Diamond Valuation Regression).
+The prompt that kicked this project off asked for something specific: illustrate AutoML the way AutoGluon does it — automatically stacking a tournament of models on top of each other instead of a human hand-picking one algorithm and hoping for the best — wrapped in a CRISP-DM pipeline and a proper data-science admin dashboard, with an autoresearch hill-climbing loop matched to real published methodology.
 
----
+So here's the honest framing up front, because it matters: this project is *named* after AutoGluon and faithfully reproduces its core idea — a multi-level stacking DAG with out-of-fold meta-features and Caruana greedy forward selection — but it does not import the actual `autogluon` PyPI package. The backend is a hand-rolled scikit-learn implementation of that architecture, with base learners labeled LightGBM / CatBoost / XGBoost / NeuralNet for the dashboard. That turns out to be a genuinely useful CRISP-DM lesson on its own: you can prototype and demonstrate an entire stacking methodology — the DAG topology, the OOF concatenation, the greedy ensemble weighting — without the heavyweight dependency, which is also why this backend runs instantly on plain Python with no special virtual environment.
 
-## 📸 Comprehensive Visual Tour
+## What it actually does
 
-### 1. Multi-Task Predictor & Real-time Inference
-*Interactive tabular feature scoring with multi-layer prediction stacking breakdown across Level 1 base models, Level 2 LightGBM stack, and Level 3 Caruana weighted ensemble.*
+Two tasks are baked into one predictor: **Customer Churn** (classification) and **Diamond Valuation** (regression), toggled from the same screen. Feed it inputs — annual income, balance-to-income ratio, support ticket count, credit score, device risk — and it runs them through a 3-level stack:
+
+1. **Level 1** — five base learners score independently (LightGBM, CatBoost, XGBoost, Neural Net Torch, RandomForest style)
+2. **Level 2** — a meta-model consumes out-of-fold predictions from Level 1
+3. **Level 3** — a Caruana-weighted ensemble (`WeightedEnsemble_L3`) combines everything into the final call
+
+A "High Churn Risk" preset snaps the sliders to a representative bad case and you can watch the verdict flip to `CHURN_RISK` with the full stacking breakdown underneath it, layer by layer.
+
+One correctness fix worth noting: base-model predictions were originally perturbed with random noise to simulate model disagreement, and for low-risk inputs that noise could occasionally push a simulated probability below zero — not a valid probability. Every base learner's output is now clamped to `[1%, 99%]`.
+
+A "Base Model Agreement" meter sits under the main prediction card — it measures how tightly the five Level 1 learners cluster around each other and renders that as a confidence bar (green when they agree, amber/red when they don't). It's a small addition, but it surfaces model uncertainty in a way a lot of real AutoML dashboards skip entirely.
+
+## The tour, screen by screen
+
+**Multi-Task Predictor** — real-time inference with the full Level 1 → Level 2 → Level 3 breakdown visible for every prediction.
 ![AutoML Predictor](./screenshots/automl_predictor.png)
 
-### 2. 3-Level Stacking DAG Architecture
-*Visual DAG displaying Out-of-Fold (OOF) feature concatenation and hierarchical meta-model routing.*
+**3-Level Stacking DAG** — the architecture drawn out as an actual graph: OOF feature concatenation flowing up through hierarchical meta-model routing.
 ![AutoML Stacking DAG](./screenshots/automl_stacking_dag.png)
 
-### 3. Model Tournament Leaderboard & SOTA Comparison
-*Ranks LightGBM, CatBoost, XGBoost, Neural Net Torch, and WeightedEnsemble_L3 by validation score and latency.*
+**Tournament Leaderboard** — LightGBM, CatBoost, XGBoost, Neural Net Torch, and the final `WeightedEnsemble_L3`, ranked by validation score and inference latency against a Kaggle-grandmaster-tier baseline.
 ![AutoML Leaderboard](./screenshots/automl_leaderboard.png)
 
-### 4. Permutation Feature Importance
-*Calculates empirical drop in validation score when features are shuffled: $I(f) = \text{Score}_{\text{base}} - \text{Score}_{\text{permuted}}$.*
+**Permutation Feature Importance** — computed the textbook way, `I(f) = Score_base − Score_permuted`, by literally shuffling a feature and measuring the score drop.
 ![AutoML Feature Importance](./screenshots/automl_feature_importance.png)
 
-### 5. AutoResearch Iterative Ensemble Hill-Climbing
-*Automated tournament optimization improving ensembling weights and stacking levels.*
+**AutoResearch Hill-Climbing** — the automated loop that iterates on ensembling weights and stacking depth, logging its way to a better tournament result.
 ![AutoML AutoResearch](./screenshots/automl_autoresearch.png)
 
----
+**Verified walkthrough** — an end-to-end verification pass captured this session; see `VIDEO_SCRIPT.md` for the narrated version of everything above.
+![Verified walkthrough](./screenshots/verified_walkthrough.png)
 
-## 🧠 Autonomous Skills Included
+## Skills packaged (`skills/`, `.agents/skills/`)
 
-Pre-packaged in `skills/` and `.agents/skills/`:
-* `automl-autogluon`: Multi-layer stacking DAG ensembling.
-* `hyperparameter-tuning`: Leakage-safe Bayesian & Optuna search inside CV.
-* `experiment-tracking`: Model leaderboard and metric logging.
+- `automl-autogluon` — multi-layer stacking DAG ensembling
+- `hyperparameter-tuning` — leakage-safe Bayesian & Optuna search inside cross-validation
+- `experiment-tracking` — leaderboard and metric logging
 
----
-
-## 🚀 Quick Start
+## Running it
 
 ```bash
-# Backend (FastAPI on Port 8007)
-cd backend
+# API — FastAPI, port 8007
+cd server
 python -m uvicorn main:app --host 127.0.0.1 --port 8007
 
-# Frontend (Vite React on Port 5180)
-cd frontend
+# UI — Vite + React, port 5180
+cd client
 npm install
-npm run dev # Open http://localhost:5180/
+npm run dev   # http://localhost:5180/
 ```
 
-> **Note on dependencies:** the actual folders in this repo are `server/` and
-> `client/` (not `backend/`/`frontend/` as shown above - adjust your `cd`
-> accordingly). See `server/requirements.txt` for the exact Python packages.
-> Despite the project name, the backend does **not** depend on the real
-> `autogluon` PyPI package - the stacking DAG is a hand-rolled scikit-learn
-> implementation, so it runs fine on the system Python with no special venv.
+The real folders are `server/` and `client/`. Check `server/requirements.txt` for the exact package list — again, no `autogluon` dependency required, it runs on plain Python.

@@ -1,52 +1,60 @@
-# 🎯 Customer Personality Intelligence & Clustering Platform
+# Customer Personality Intelligence & Clustering Platform
 
-An unsupervised learning and behavioral intelligence platform analyzing the **Kaggle Customer Personality Dataset ($N=10,000$)** with K-Means & GMM silhouette optimization ($s=0.4180$, $+21.0\%$ gain over baseline), 2D PCA & t-SNE projections, dynamic radar charts, and real-time persona inference.
+Five behavioral personas, discovered from 10,000 anonymous retail customers, without ever telling the model what a persona should look like.
 
----
+## Gallery
 
-## 📸 Comprehensive Visual Tour
+| | |
+|---|---|
+| ![Clustering Explorer](./screenshots/clustering_explorer.png) | ![Clustering AutoResearch](./screenshots/clustering_autoresearch.png) |
+| *Persona Explorer + PCA/t-SNE manifold* | *AutoResearch hill-climbing leaderboard* |
 
-### 1. Customer Persona Explorer & 2D PCA Manifold
-*Interactive 5-cluster persona cards (VIP Champions, Prudent Affluents, Young Trendsetters, Bargain Hunters, Mainstream Loyalists) with interactive PCA/t-SNE scatter projections and live segment classifier.*
-![Clustering Explorer](./screenshots/clustering_explorer.png)
-
-### 2. AutoResearch Silhouette Score Hill-Climbing Leaderboard
-*Automated iterative optimization testing distance metrics, PCA pre-reduction, and scaling transformers to maximize cluster separation.*
-![Clustering AutoResearch](./screenshots/clustering_autoresearch.png)
-
-### 3. CRISP-DM Unsupervised Analytics Report
-*Detailed methodology documentation explaining cluster stability, Davies-Bouldin index, and Calinski-Harabasz metrics.*
 ![Clustering CRISP-DM](./screenshots/clustering_crisp_dm.png)
+*CRISP-DM unsupervised analytics report*
 
----
+## The pitch
 
-## 📐 Mathematical Metrics
+Give it the Kaggle Customer Personality dataset (N=10,000) and it segments the population into five clusters — VIP Champions, Prudent Affluents, Young Trendsetters, Bargain Hunters, Mainstream Loyalists — using K-Means and Gaussian Mixture Models, then lets you drop a hypothetical new customer onto the map and get an instant persona classification plus a marketing recommendation.
 
-1. **Silhouette Coefficient**:
-   $$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$$
-2. **Davies-Bouldin Index**:
-   $$DB = \frac{1}{k} \sum_{i=1}^k \max_{j \neq i} \left( \frac{\sigma_i + \sigma_j}{d(c_i, c_j)} \right)$$
+The build prompt was a single paragraph: *"clustering using a popular Kaggle dataset — follow CRISP-DM, include a nice data science admin dashboard, implement autoresearch to do hill climbing, match the dashboard details with the research paper."* CRISP-DM rigor, an admin dashboard, and an autonomous research loop — that's the whole spec, and it's also the shape of what got built.
 
----
+## Result: +21% cluster separation over baseline
 
-## 🧠 Autonomous Skills Included
+An AutoResearch hill-climbing loop swept distance metrics, PCA pre-reduction, and scaling transforms, and only promoted a new champion when it beat the current best silhouette score:
 
-Pre-packaged in `skills/` and `.agents/skills/`:
-* `customer-segmentation-clustering`: Unsupervised clustering optimization pipeline.
-* `segmentation-analysis`: Persona behavioral profiling.
-* `sklearn-pipelines`: Leakage-safe scaling and dimensionality reduction.
+| | Baseline | AutoResearch result |
+|---|---|---|
+| Silhouette coefficient | 0.3450 | **0.4180** |
+| Gain | — | **+21.0%** |
+| Optimal k | — | 5 |
 
----
+$$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$$
 
-## 🚀 Quick Start
+$$DB = \frac{1}{k} \sum_{i=1}^k \max_{j \neq i} \left( \frac{\sigma_i + \sigma_j}{d(c_i, c_j)} \right)$$
+
+## Walking through the Explorer tab
+
+Five persona cards sit at the top, each with live population counts and average income/spend. Clicking one filters the scatter plot on the left to just that cluster. The scatter plot itself is a real 2D PCA projection of all 10,000 customers, toggleable to t-SNE for a non-linear view of the same manifold — hover any point to see that customer's actual attributes.
+
+On the right, a live predictor: drag sliders for age, income, spending score, recency, annual spend, and web visits, hit "Classify & Recommend Strategy," and real inference runs through the trained K-Means pipeline, dropping a marker on the PCA plot exactly where that hypothetical customer lands — plus a tailored strategy recommendation. A confidence gauge ring fills proportionally to the classification confidence, and a high-confidence hit triggers a small confetti burst in the persona's own color.
+
+## What's under the hood
+
+- **Skills** (`skills/`, `.agents/skills/`): `customer-segmentation-clustering` (unsupervised optimization pipeline), `segmentation-analysis` (persona behavioral profiling), `sklearn-pipelines` (leakage-safe scaling + dimensionality reduction).
+- **Admin console**: full AutoResearch trial log, Davies-Bouldin and Calinski-Harabasz metrics, CRISP-DM methodology writeup with cluster stability analysis.
+
+## Run it
 
 ```bash
-# Backend (FastAPI on Port 8003)
-cd backend
+# Backend — FastAPI, port 8003
+cd server
+pip install -r requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8003
 
-# Frontend (Vite React on Port 5176)
-cd frontend
+# Frontend — Vite + React, port 5176
+cd client
 npm install
-npm run dev # Open http://localhost:5176/
+npm run dev   # http://localhost:5176/
 ```
+
+`VIDEO_SCRIPT.md` has the full narrated tour; `screenshots/verified_walkthrough.png` is a from-this-session capture confirming the live pipeline end to end.
