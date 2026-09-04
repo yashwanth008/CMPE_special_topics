@@ -8,7 +8,8 @@ import {
   PieChart,
   Zap,
   BarChart2,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
 
 export const AnalyticsDashboard = () => {
@@ -77,6 +78,19 @@ export const AnalyticsDashboard = () => {
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
             {summary?.totalTimeSpentMinutes || 0} total minutes in Pomodoro
+          </p>
+        </div>
+
+        <div className="stat-card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span className="stat-label">Overdue Tasks</span>
+            <AlertTriangle size={18} style={{ color: (summary?.overdue || 0) > 0 ? '#ef4444' : 'var(--text-muted)' }} />
+          </div>
+          <div className="stat-value" style={{ color: (summary?.overdue || 0) > 0 ? '#ef4444' : 'var(--text-secondary)' }}>
+            {summary?.overdue || 0}
+          </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            {(summary?.overdue || 0) > 0 ? 'Past due date, still incomplete' : 'Nothing overdue — great pace!'}
           </p>
         </div>
       </div>

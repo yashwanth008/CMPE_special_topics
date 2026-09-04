@@ -292,6 +292,20 @@ export const EstimatorView = () => {
                   <span>+${prediction.estimated_fare.rush_surcharge.toFixed(2)}</span>
                 </div>
               )}
+              {prediction.estimated_fare.night_surcharge > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--accent-purple, #a78bfa)' }}>
+                  <span>Overnight Surcharge:</span>
+                  <span>+${prediction.estimated_fare.night_surcharge.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                <span>NYS Congestion Fee:</span>
+                <span>+${prediction.estimated_fare.congestion_fee.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.35rem', marginTop: '0.15rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 700, color: '#fff' }}>
+                <span>Total Estimated Fare:</span>
+                <span>${prediction.estimated_fare.total.toFixed(2)}</span>
+              </div>
             </div>
 
             {/* Spatial Telemetry Grid */}

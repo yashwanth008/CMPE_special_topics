@@ -49,3 +49,10 @@ cd frontend
 npm install
 npm run dev # Open http://localhost:5180/
 ```
+
+> **Note on dependencies:** the actual folders in this repo are `server/` and
+> `client/` (not `backend/`/`frontend/` as shown above - adjust your `cd`
+> accordingly). See `server/requirements.txt` for the exact Python packages.
+> Despite the project name, the backend does **not** depend on the real
+> `autogluon` PyPI package - the stacking DAG is a hand-rolled scikit-learn
+> implementation, so it runs fine on the system Python with no special venv.

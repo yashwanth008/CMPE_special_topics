@@ -37,6 +37,16 @@ A comprehensive, production-grade portfolio of **16 Full-Stack Data Science, Mac
 
 ---
 
+## 🎬 Video Walkthrough
+
+Every one of the 16 systems above was re-run end-to-end from a clean checkout — dependencies reinstalled, backend + frontend launched, and the actual UX exercised (not just read from source) — to confirm it still works and to fix anything that didn't. That pass turned up and fixed real bugs across the portfolio (a tag-creation crash in Project 0, a fare breakdown that didn't sum to its own total in Project 1, a React double-render bug that was quietly corrupting streamed chat output in Project 2, a silently-broken DAG execution handler in Project 9, a fabricated benchmark claim in Project 10's narrative, a runaway Sortino ratio in Project 15, and more), plus one small tasteful creative enhancement per project.
+
+A full narrated walkthrough script for each project — what to click, what to say, and the architecture/bug-fix highlight worth calling out — is written and ready to record in 👉 **[WALKTHROUGH_VIDEO_SCRIPT.md](./WALKTHROUGH_VIDEO_SCRIPT.md)**, with a per-project copy also sitting inside each project directory as `VIDEO_SCRIPT.md` next to a fresh `screenshots/verified_walkthrough.png` proving it runs.
+
+> 📺 **YouTube walkthrough:** _coming soon — link will be added here once recorded._
+
+---
+
 ## 🛠️ Global Quick Start
 
 ### 1. Prerequisites

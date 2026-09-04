@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Trash2, Sparkles, TrendingUp, DollarSign, Award, ArrowRight, Zap, Check } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { ShoppingCart, Plus, Trash2, Sparkles, TrendingUp, DollarSign, Award, ArrowRight, Zap, Check, XCircle } from 'lucide-react';
 import { api } from '../utils/api';
 import { AssociationGraph } from './AssociationGraph';
 
@@ -50,10 +51,20 @@ export const BasketRecommender = ({ catalog = [], graphData = {} }) => {
     fetchRecs();
   }, [basket]);
 
-  const handleAddItem = (itemName) => {
+  const handleAddItem = (itemName, fromRecommendation = false) => {
     if (!itemName || basket.includes(itemName)) return;
     setBasket([...basket, itemName]);
     setSelectedProduct('');
+    // Celebrate accepting a high-lift, AI-recommended cross-sell suggestion
+    if (fromRecommendation) {
+      confetti({
+        particleCount: 70,
+        spread: 55,
+        origin: { x: 0.28, y: 0.5 },
+        colors: ['#10b981', '#f59e0b', '#ffffff'],
+        scalar: 0.8
+      });
+    }
   };
 
   const handleRemoveItem = (itemName) => {
@@ -62,6 +73,10 @@ export const BasketRecommender = ({ catalog = [], graphData = {} }) => {
 
   const handleSelectPreset = (preset) => {
     setBasket(preset.items);
+  };
+
+  const handleClearBasket = () => {
+    setBasket([]);
   };
 
   return (
@@ -131,9 +146,20 @@ export const BasketRecommender = ({ catalog = [], graphData = {} }) => {
                 <ShoppingCart size={18} style={{ color: 'var(--accent-amber-bright)' }} />
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Active Shopping Basket</h3>
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                {basket.length} items in cart
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                  {basket.length} items in cart
+                </span>
+                {basket.length > 0 && (
+                  <button
+                    onClick={handleClearBasket}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-full)', padding: '0.2rem 0.55rem', fontSize: '0.7rem', color: 'var(--text-muted)', cursor: 'pointer' }}
+                    title="Clear basket"
+                  >
+                    <XCircle size={12} /> Clear
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Quick Archetype Presets */}
@@ -302,7 +328,7 @@ export const BasketRecommender = ({ catalog = [], graphData = {} }) => {
                       <button
                         className="btn-primary"
                         style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem' }}
-                        onClick={() => handleAddItem(rec.item_name)}
+                        onClick={() => handleAddItem(rec.item_name, true)}
                       >
                         <Plus size={12} /> Add to Cart
                       </button>

@@ -73,6 +73,7 @@ export const AnomalyScorer = ({ featureCatalog = [], initialThreshold = 68.0 }) 
   const [features, setFeatures] = useState(PRESETS.nominal.values);
   const [scoreResult, setScoreResult] = useState(null);
   const [isScoring, setIsScoring] = useState(false);
+  const [scoreHistory, setScoreHistory] = useState([]);
 
   const handleScore = async (currentFeats) => {
     setIsScoring(true);
@@ -80,6 +81,7 @@ export const AnomalyScorer = ({ featureCatalog = [], initialThreshold = 68.0 }) 
       const res = await api.scoreTelemetry(currentFeats);
       if (res.success) {
         setScoreResult(res.result);
+        setScoreHistory((prev) => [...prev, res.result.threat_score].slice(-24));
       }
     } catch (err) {
       console.error('Scoring failed:', err);
@@ -337,6 +339,33 @@ export const AnomalyScorer = ({ featureCatalog = [], initialThreshold = 68.0 }) 
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
               Decision Cutoff: <strong>{scoreResult?.threat_threshold || initialThreshold}</strong> • Classification: <strong style={{ color: isAnomaly ? 'var(--accent-rose-bright)' : 'var(--accent-emerald-bright)' }}>{isAnomaly ? 'MALICIOUS ANOMALY' : 'NOMINAL BENIGN'}</strong>
             </div>
+
+            {/* Live Threat Score Sparkline */}
+            {scoreHistory.length > 1 && (
+              <div style={{ marginTop: '0.85rem' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, marginBottom: '0.3rem' }}>
+                  Live Session Threat Trend
+                </div>
+                <svg width="100%" height="34" viewBox="0 0 240 34" preserveAspectRatio="none" style={{ display: 'block' }}>
+                  {(() => {
+                    const max = 100;
+                    const w = 240, h = 34, n = scoreHistory.length;
+                    const pts = scoreHistory.map((s, i) => {
+                      const x = n === 1 ? 0 : (i / (n - 1)) * w;
+                      const y = h - (Math.min(s, max) / max) * h;
+                      return `${x.toFixed(1)},${y.toFixed(1)}`;
+                    }).join(' ');
+                    const cutoffY = h - (Math.min(scoreResult?.threat_threshold || initialThreshold, max) / max) * h;
+                    return (
+                      <>
+                        <line x1="0" y1={cutoffY} x2={w} y2={cutoffY} stroke="var(--accent-amber)" strokeDasharray="3,3" strokeWidth="1" opacity="0.6" />
+                        <polyline points={pts} fill="none" stroke={isAnomaly ? 'var(--accent-rose)' : 'var(--accent-cyan)'} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                      </>
+                    );
+                  })()}
+                </svg>
+              </div>
+            )}
 
             {/* Diagnosed Archetype */}
             <div style={{ marginTop: '1rem', background: 'rgba(0, 0, 0, 0.4)', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>

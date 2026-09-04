@@ -196,10 +196,33 @@ export const App: React.FC = () => {
     addLog('success', 'Starting SSE real-time execution stream on Port 8009...');
 
     try {
+      // Adapt the client-side WorkflowDAG shape into the backend's
+      // WorkflowDefinition schema (nested config.title/description,
+      // wrapped in an ExecuteRequest envelope).
+      const backendWorkflow = {
+        id: dag.id,
+        name: dag.name,
+        description: dag.description,
+        version: '1.0.0',
+        tags: [],
+        nodes: dag.nodes.map((n) => ({
+          id: n.id,
+          name: n.title,
+          dependencies: n.dependencies,
+          position: n.position,
+          config: {
+            kind: n.config.kind,
+            title: n.title,
+            description: n.title,
+            parameters: n.config.parameters,
+          },
+        })),
+      };
+
       const response = await fetch(`${API_BASE}/api/workflow/execute-stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dag),
+        body: JSON.stringify({ workflow: backendWorkflow, inputs: {}, simulation_speed_ms: 400 }),
       });
 
       if (!response.ok || !response.body) {
@@ -237,22 +260,44 @@ export const App: React.FC = () => {
 
   const handleSSEEvent = (event: any) => {
     switch (event.type) {
-      case 'workflow_started':
-        addLog('info', `Workflow run [${event.run_id}] started. Kahn levels: ${event.total_stages}`);
+      case 'state_change':
+        if (event.state === 'failed') {
+          setEngineState('failed');
+          addLog('error', `Execution failed: ${event.error || 'unknown error'}`);
+        } else if (event.state === 'running') {
+          setEngineState('running');
+          addLog('info', event.message || 'Executing nodes...');
+        } else if (event.state === 'completed') {
+          setEngineState('completed');
+          addLog('success', event.summary || `Workflow run [${event.run_id}] completed in ${event.total_latency_ms}ms.`);
+        } else {
+          addLog('info', event.message || `State -> ${event.state}`);
+        }
         break;
 
-      case 'stage_started':
-        addLog('info', `Executing Stage [${event.stage_index + 1}/${event.total_stages}] concurrently with nodes: ${event.nodes.join(', ')}`);
+      case 'compilation_success':
+        addLog(
+          'success',
+          `DAG compiled: ${event.compilation.total_nodes} nodes across ${event.compilation.max_depth + 1} concurrency stages.`
+        );
+        break;
+
+      case 'stage_start':
+        addLog('info', `Executing Stage [${Number(event.level) + 1}] concurrently with nodes: ${event.parallel_nodes.join(', ')}`);
         setDag((prev) => ({
           ...prev,
           nodes: prev.nodes.map((n) =>
-            event.nodes.includes(n.id) ? { ...n, status: 'running' } : n
+            event.parallel_nodes.includes(n.id) ? { ...n, status: 'running' } : n
           ),
         }));
         break;
 
-      case 'node_completed':
-        addLog('success', `Node completed in ${event.latency_ms}ms`, makeNodeId(event.node_id), event.output);
+      case 'node_start':
+        addLog('info', `Node "${event.node_name}" (${event.kind}) started.`, makeNodeId(event.node_id));
+        break;
+
+      case 'node_complete':
+        addLog('success', `Node "${event.node_name}" completed in ${event.latency_ms}ms`, makeNodeId(event.node_id), event.output);
         setDag((prev) => ({
           ...prev,
           nodes: prev.nodes.map((n) =>
@@ -268,14 +313,9 @@ export const App: React.FC = () => {
         }));
         break;
 
-      case 'workflow_completed':
+      case 'workflow_finished':
         setEngineState('completed');
-        addLog('success', `Workflow execution completed successfully in ${event.duration_ms}ms! Total nodes processed: ${event.completed_nodes}`);
-        break;
-
-      case 'workflow_failed':
-        setEngineState('failed');
-        addLog('error', `Workflow execution failed: ${event.error}`);
+        addLog('success', `Workflow run [${event.run_id}] finished in ${event.total_ms}ms.`);
         break;
     }
   };

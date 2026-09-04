@@ -50,6 +50,41 @@ async function hydrateTasks(tasks) {
   }));
 }
 
+// Resolve a mixed array of tag ids / tag names / {id} / {name} objects into
+// valid tag ids, creating any brand-new tags on the fly (e.g. from the
+// natural language quick-add parser, which only knows plain tag names).
+async function resolveTagIds(tags) {
+  const resolvedIds = [];
+  for (const tag of tags) {
+    const rawValue = typeof tag === 'string' ? tag : (tag?.id || tag?.name || '');
+    if (!rawValue) continue;
+
+    // Already a known tag id (e.g. 'tag-frontend')?
+    const byId = await getOne('SELECT id FROM tags WHERE id = ?', [rawValue]);
+    if (byId) {
+      resolvedIds.push(byId.id);
+      continue;
+    }
+
+    // Otherwise treat it as a tag name and find-or-create.
+    const cleanName = rawValue.trim().toLowerCase().replace(/^#/, '');
+    if (!cleanName) continue;
+
+    const byName = await getOne('SELECT id FROM tags WHERE name = ?', [cleanName]);
+    if (byName) {
+      resolvedIds.push(byName.id);
+      continue;
+    }
+
+    const newId = `tag-${uuidv4().slice(0, 8)}`;
+    const palette = ['#38bdf8', '#a855f7', '#f43f5e', '#10b981', '#f59e0b', '#6366f1'];
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    await run('INSERT INTO tags (id, name, color) VALUES (?, ?, ?)', [newId, cleanName, color]);
+    resolvedIds.push(newId);
+  }
+  return resolvedIds;
+}
+
 // Log activity helper
 async function logActivity(taskId, taskTitle, action, details) {
   try {
@@ -211,13 +246,11 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Insert tags
-    if (Array.isArray(tags)) {
-      for (const tag of tags) {
-        const tagId = typeof tag === 'string' ? tag : tag.id;
-        if (tagId) {
-          await run(`INSERT OR IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)`, [taskId, tagId]);
-        }
+    // Insert tags (resolving plain tag names from the NLP parser into real tag ids)
+    if (Array.isArray(tags) && tags.length > 0) {
+      const tagIds = await resolveTagIds(tags);
+      for (const tagId of tagIds) {
+        await run(`INSERT OR IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)`, [taskId, tagId]);
       }
     }
 
@@ -295,14 +328,12 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    // Sync tags
+    // Sync tags (resolving plain tag names from the NLP parser into real tag ids)
     await run('DELETE FROM task_tags WHERE task_id = ?', [taskId]);
-    if (Array.isArray(tags)) {
-      for (const tag of tags) {
-        const tagId = typeof tag === 'string' ? tag : tag.id;
-        if (tagId) {
-          await run(`INSERT OR IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)`, [taskId, tagId]);
-        }
+    if (Array.isArray(tags) && tags.length > 0) {
+      const tagIds = await resolveTagIds(tags);
+      for (const tagId of tagIds) {
+        await run(`INSERT OR IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)`, [taskId, tagId]);
       }
     }
 

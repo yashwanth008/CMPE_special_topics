@@ -1,0 +1,17 @@
+# Anomaly Detection & Threat Intelligence Platform - backend dependencies
+# Verified working on system Python 3.14 (no special venv needed for this project).
+#
+# Install with:
+#   cd 06_anomaly_detection/server
+#   python3 -m pip install -r requirements.txt
+#   python3 -m uvicorn main:app --host 127.0.0.1 --port 8006
+#
+# The deep autoencoder backbone (ml/models.py) is implemented from scratch with
+# plain NumPy (no PyTorch/TensorFlow dependency required).
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.4

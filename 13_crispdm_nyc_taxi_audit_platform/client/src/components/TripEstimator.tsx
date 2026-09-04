@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { TripInferenceInput, PredictionResponse, AsyncState } from '../types';
-import { 
-  DollarSign, Sparkles, TrendingUp, Leaf, Zap, CloudRain, Clock, 
-  MapPin, Users, CreditCard, Compass, ChevronRight, BarChart2 
+import {
+  DollarSign, Sparkles, TrendingUp, Leaf, Zap, CloudRain, Clock,
+  MapPin, Users, CreditCard, Compass, ChevronRight, BarChart2, History
 } from 'lucide-react';
 
 const PRESET_ROUTES = [
@@ -55,6 +55,7 @@ export const TripEstimator: React.FC = () => {
   });
 
   const [state, setState] = useState<AsyncState<PredictionResponse>>({ status: 'idle' });
+  const [history, setHistory] = useState<Array<{ id: number; fare: number; surge: string; rate: string; hour: number }>>([]);
 
   const runPrediction = async () => {
     setState({ status: 'loading' });
@@ -67,6 +68,16 @@ export const TripEstimator: React.FC = () => {
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data: PredictionResponse = await resp.json();
       setState({ status: 'success', data });
+      setHistory((prev) => [
+        {
+          id: Date.now(),
+          fare: data.predictions.predicted_total_fare_usd,
+          surge: data.predictions.surge_pricing_tier,
+          rate: formData.rate_code,
+          hour: formData.hour_of_day
+        },
+        ...prev
+      ].slice(0, 6));
     } catch (err: any) {
       setState({ status: 'error', error: err.message || 'Inference Error' });
     }
@@ -313,6 +324,36 @@ export const TripEstimator: React.FC = () => {
                 <span>Model: {state.data.telemetry.model_architecture}</span>
                 <span className="text-emerald-400">⚡ Latency: {state.data.telemetry.inference_latency_ms} ms</span>
               </div>
+
+              {/* Session Scenario History Ticker */}
+              {history.length > 1 && (
+                <div className="glass-card p-5 rounded-2xl border border-slate-800 space-y-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <History className="w-3.5 h-3.5 text-amber-400" /> Session Scenario Comparison (Last {history.length})
+                  </h3>
+                  <div className="space-y-1.5">
+                    {history.map((h, idx) => {
+                      const maxFare = Math.max(...history.map((x) => x.fare));
+                      const widthPct = maxFare > 0 ? (h.fare / maxFare) * 100 : 0;
+                      return (
+                        <div key={h.id} className="flex items-center gap-3 text-[11px] font-mono">
+                          <span className={`w-10 text-slate-500 ${idx === 0 ? 'text-amber-400 font-bold' : ''}`}>
+                            {idx === 0 ? 'NOW' : `-${idx}`}
+                          </span>
+                          <div className="flex-1 h-4 bg-slate-950/60 rounded-md overflow-hidden border border-slate-800">
+                            <div
+                              className={`h-full ${idx === 0 ? 'bg-amber-500/70' : 'bg-cyan-500/40'} transition-all`}
+                              style={{ width: `${widthPct}%` }}
+                            />
+                          </div>
+                          <span className="w-16 text-right text-slate-200 font-bold">${h.fare.toFixed(2)}</span>
+                          <span className="w-16 text-slate-500">{h.rate} @{h.hour}h</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

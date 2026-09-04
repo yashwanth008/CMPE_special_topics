@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { api } from '../utils/api';
 import {
   Users,
@@ -52,7 +53,7 @@ export const ClusterExplorer = ({ profiles = {} }) => {
     handlePredict();
   }, []);
 
-  const handlePredict = async () => {
+  const handlePredict = async (isUserTriggered = false) => {
     try {
       setIsPredicting(true);
       const res = await api.predictCustomer({
@@ -67,6 +68,16 @@ export const ClusterExplorer = ({ profiles = {} }) => {
       });
       if (res.success) {
         setPredictedResult(res.prediction);
+        // Celebrate high-confidence persona matches with a tasteful confetti burst
+        if (isUserTriggered && res.prediction.assignment_confidence >= 70) {
+          confetti({
+            particleCount: 90,
+            spread: 65,
+            origin: { x: 0.78, y: 0.55 },
+            colors: [res.prediction.color, '#ffffff'],
+            scalar: 0.85
+          });
+        }
       }
     } catch (err) {
       console.error('Prediction failed:', err);
@@ -421,7 +432,7 @@ export const ClusterExplorer = ({ profiles = {} }) => {
             </div>
           </div>
 
-          <button className="btn-primary" onClick={handlePredict} disabled={isPredicting} style={{ width: '100%', justifyContent: 'center' }}>
+          <button className="btn-primary" onClick={() => handlePredict(true)} disabled={isPredicting} style={{ width: '100%', justifyContent: 'center' }}>
             <span>Classify & Recommend Strategy</span>
           </button>
 
@@ -442,9 +453,22 @@ export const ClusterExplorer = ({ profiles = {} }) => {
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: predictedResult.color }}>
                   Cluster #{predictedResult.cluster_id} Classified
                 </span>
-                <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', padding: '0.15rem 0.45rem', borderRadius: 'var(--radius-sm)', color: '#fff' }}>
-                  {predictedResult.assignment_confidence}% Confidence
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {/* Confidence Ring Gauge */}
+                  <svg width="28" height="28" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3.5" />
+                    <circle
+                      cx="18" cy="18" r="15.5" fill="none"
+                      stroke={predictedResult.color}
+                      strokeWidth="3.5"
+                      strokeDasharray={`${(predictedResult.assignment_confidence / 100) * 97.4} 97.4`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', padding: '0.15rem 0.45rem', borderRadius: 'var(--radius-sm)', color: '#fff' }}>
+                    {predictedResult.assignment_confidence}% Confidence
+                  </span>
+                </div>
               </div>
 
               <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff' }}>

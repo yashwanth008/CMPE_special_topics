@@ -15,6 +15,8 @@ export const EvaluationMetricsLesson = ({ moduleData = {}, onComplete }) => {
     recall_pct: 80.0,
     f1_pct: 69.6
   });
+  const [costFP, setCostFP] = useState(50);
+  const [costFN, setCostFN] = useState(500);
 
   const handleThresholdChange = async (val) => {
     const t = parseFloat(val);
@@ -147,6 +149,60 @@ export const EvaluationMetricsLesson = ({ moduleData = {}, onComplete }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--bg-tertiary)', padding: '0.4rem 0.65rem', borderRadius: 'var(--radius-sm)' }}>
               <span>Accuracy (TP+TN / 100):</span>
               <strong style={{ color: '#fff', fontFamily: 'var(--font-mono)' }}>{simResult.accuracy_pct}%</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Cost-Sensitive Decision Matrix */}
+        <div className="card" style={{ borderColor: 'rgba(245, 158, 11, 0.35)', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <AlertTriangle size={16} style={{ color: 'var(--accent-amber)' }} />
+            <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff' }}>
+              Cost-Sensitive Decision Matrix
+            </h4>
+          </div>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+            In the real world, errors are not equal. Assign a business/clinical cost to each error type and see how the "optimal" threshold shifts.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.85rem' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', marginBottom: '0.2rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Cost per False Positive</span>
+                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-amber)', fontWeight: 700 }}>${costFP}</span>
+              </div>
+              <input
+                type="range" min="1" max="1000" step="1"
+                value={costFP}
+                onChange={(e) => setCostFP(parseFloat(e.target.value))}
+                style={{ width: '100%', accentColor: 'var(--accent-amber)' }}
+              />
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', marginBottom: '0.2rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Cost per False Negative</span>
+                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-rose)', fontWeight: 700 }}>${costFN}</span>
+              </div>
+              <input
+                type="range" min="1" max="2000" step="1"
+                value={costFN}
+                onChange={(e) => setCostFN(parseFloat(e.target.value))}
+                style={{ width: '100%', accentColor: 'var(--accent-rose)' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                Total Expected Cost at T = {threshold.toFixed(2)}
+              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.35rem', fontWeight: 800, color: 'var(--accent-amber)' }}>
+                ${(simResult.fp * costFP + simResult.fn * costFN).toLocaleString()}
+              </span>
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+              = ({simResult.fp} FP × ${costFP}) + ({simResult.fn} FN × ${costFN}). Drag the cutoff threshold above and watch this total move — notice how a cheap-FP / expensive-FN cost structure (e.g. cancer screening) always pushes the optimal cutoff lower than a standard 0.5.
             </div>
           </div>
         </div>

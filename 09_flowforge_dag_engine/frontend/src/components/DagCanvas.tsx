@@ -68,6 +68,39 @@ export const DagCanvas: React.FC<DagCanvasProps> = ({
     }
   };
 
+  // Compute Kahn's topological concurrency level for each node so the
+  // canvas can visibly label which nodes are eligible to run in parallel.
+  const nodeLevels = React.useMemo(() => {
+    const inDegree = new Map<string, number>();
+    const adj = new Map<string, string[]>();
+    nodes.forEach((n) => {
+      inDegree.set(n.id, 0);
+      adj.set(n.id, []);
+    });
+    nodes.forEach((n) => {
+      n.dependencies.forEach((dep) => {
+        adj.get(dep)?.push(n.id);
+        inDegree.set(n.id, (inDegree.get(n.id) || 0) + 1);
+      });
+    });
+    const levels = new Map<string, number>();
+    let queue = nodes.filter((n) => inDegree.get(n.id) === 0).map((n) => n.id);
+    queue.forEach((id) => levels.set(id, 0));
+    const degrees = new Map(inDegree);
+    while (queue.length) {
+      const next: string[] = [];
+      queue.forEach((id) => {
+        (adj.get(id) || []).forEach((child) => {
+          degrees.set(child, (degrees.get(child) || 0) - 1);
+          levels.set(child, Math.max(levels.get(child) ?? 0, (levels.get(id) ?? 0) + 1));
+          if (degrees.get(child) === 0) next.push(child);
+        });
+      });
+      queue = next;
+    }
+    return levels;
+  }, [nodes]);
+
   // Render SVG Edges
   const renderEdges = () => {
     const edges: JSX.Element[] = [];
@@ -168,7 +201,13 @@ export const DagCanvas: React.FC<DagCanvasProps> = ({
 
               {/* Node ID & Latency */}
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/60 text-[11px]">
-                <span className="font-mono text-slate-400 truncate max-w-[90px]">{node.id}</span>
+                <span className="font-mono text-slate-400 truncate max-w-[70px]">{node.id}</span>
+                <span
+                  className="font-mono text-indigo-300/90 bg-indigo-500/10 border border-indigo-500/20 rounded px-1.5 py-0.5 text-[10px]"
+                  title="Kahn's topological concurrency level"
+                >
+                  L{nodeLevels.get(node.id) ?? 0}
+                </span>
                 {node.latency_ms !== undefined && (
                   <span className="flex items-center gap-1 text-slate-300 font-mono">
                     <Clock className="w-2.5 h-2.5 text-slate-500" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Calendar } from 'lucide-react';
+import { Activity, Calendar, Download } from 'lucide-react';
 import { TimeSeriesRecord, ForecastResponse } from '../types';
 
 export const ForecastStudio: React.FC = () => {
@@ -35,6 +35,22 @@ export const ForecastStudio: React.FC = () => {
   useEffect(() => {
     runForecast();
   }, [horizon, modelChoice, surgePct]);
+
+  const downloadCsv = () => {
+    if (!forecastRes) return;
+    const header = 'step,date,forecast_mw,lower_bound_95,upper_bound_95,trend_component,seasonal_component';
+    const rows = forecastRes.forecast.map((f) =>
+      [f.step, f.date, f.forecast_mw, f.lower_bound_95, f.upper_bound_95, f.trend_component, f.seasonal_component].join(',')
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `timepulse_forecast_${modelChoice}_${horizon}d.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // SVG Chart Dimensions
   const chartHeight = 320;
@@ -222,10 +238,18 @@ export const ForecastStudio: React.FC = () => {
       {/* Forecast Data Table (Head 10 horizon steps) */}
       {forecastRes && (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-cyan-400" />
-            Projected Forecast Schedule (Next {horizon} Days)
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-400" />
+              Projected Forecast Schedule (Next {horizon} Days)
+            </h3>
+            <button
+              onClick={downloadCsv}
+              className="flex items-center gap-1.5 text-[11px] font-mono text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/10 rounded-lg px-3 py-1.5 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" /> Export CSV
+            </button>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs font-mono text-left border-collapse">

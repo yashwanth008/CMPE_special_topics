@@ -124,6 +124,22 @@ export const QuantitativeBacktestStudio: React.FC = () => {
             </div>
             <div className="text-[10px] text-slate-400 font-mono mt-0.5">95% VaR: {backtest.value_at_risk_95_pct.toFixed(2)}%</div>
           </div>
+
+          <div className="glass-panel p-4 border-teal-500/30">
+            <div className="text-[10px] text-slate-400 font-mono uppercase">Win Rate</div>
+            <div className="text-xl font-bold font-mono text-teal-300 mt-1">
+              {backtest.win_rate_pct.toFixed(1)}%
+            </div>
+            <div className="text-[10px] text-slate-400 font-mono mt-0.5">Winning Trading Days</div>
+          </div>
+
+          <div className="glass-panel p-4 border-orange-500/30">
+            <div className="text-[10px] text-slate-400 font-mono uppercase">Profit Factor</div>
+            <div className="text-xl font-bold font-mono text-orange-300 mt-1">
+              {backtest.profit_factor.toFixed(2)}x
+            </div>
+            <div className="text-[10px] text-slate-400 font-mono mt-0.5">Gross Profit / Gross Loss</div>
+          </div>
         </div>
       )}
 
@@ -172,6 +188,35 @@ export const QuantitativeBacktestStudio: React.FC = () => {
                     <text x={getX(curve.length - 1) + 8} y={getY(curve[curve.length - 1].strategy_equity) + 4} fill="#34d399" fontSize="10" fontFamily="monospace" fontWeight="bold">
                       ${curve[curve.length - 1].strategy_equity.toLocaleString()}
                     </text>
+                  </g>
+                );
+              })()}
+            </svg>
+          </div>
+
+          {/* Underwater Drawdown Chart */}
+          <div className="mt-6 h-32 w-full bg-slate-950/70 rounded-xl border border-slate-800 p-4">
+            <div className="text-[10px] text-slate-400 font-mono uppercase mb-1">Underwater Drawdown Curve (% Off Equity Peak)</div>
+            <svg viewBox="0 0 600 80" className="w-full h-24 overflow-visible">
+              {(() => {
+                const curve = backtest.daily_equity_curve;
+                const maxDd = Math.max(...curve.map(c => c.drawdown_pct), 0.01);
+                const getY = (dd: number) => 8 + (dd / maxDd) * 62;
+                const getX = (idx: number) => 40 + (idx / (curve.length - 1)) * 520;
+
+                const areaPath =
+                  `M ${getX(0)} 8 ` +
+                  curve.map((c, i) => `L ${getX(i)} ${getY(c.drawdown_pct)}`).join(' ') +
+                  ` L ${getX(curve.length - 1)} 8 Z`;
+                const linePath = curve.map((c, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(c.drawdown_pct)}`).join(' ');
+
+                return (
+                  <g>
+                    <line x1="40" y1="8" x2="560" y2="8" stroke="#1e293b" strokeDasharray="3,3" />
+                    <path d={areaPath} fill="#f43f5e" fillOpacity="0.18" stroke="none" />
+                    <path d={linePath} fill="none" stroke="#fb7185" strokeWidth="2" />
+                    <text x="40" y="6" fill="#64748b" fontSize="9" fontFamily="monospace">0%</text>
+                    <text x="40" y="76" fill="#64748b" fontSize="9" fontFamily="monospace">-{maxDd.toFixed(2)}%</text>
                   </g>
                 );
               })()}

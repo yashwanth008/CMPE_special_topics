@@ -11,6 +11,14 @@ export const PortfolioScorecard: React.FC<PortfolioScorecardProps> = ({
   summary,
   onSelectProject,
 }) => {
+  // Creative addition: surface the strongest and weakest governance
+  // dimension live from the radar data, so the callout stays accurate
+  // even if the underlying audit scores change.
+  const dimensionEntries = Object.entries(summary.dimension_radar);
+  const sortedDimensions = [...dimensionEntries].sort((a, b) => b[1] - a[1]);
+  const strongestDimension = sortedDimensions[0];
+  const weakestDimension = sortedDimensions[sortedDimensions.length - 1];
+
   return (
     <div className="space-y-8">
       {/* Executive Hero Banner */}
@@ -50,6 +58,21 @@ export const PortfolioScorecard: React.FC<PortfolioScorecardProps> = ({
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           6-Dimension Portfolio Governance Scorecard
         </h3>
+
+        {strongestDimension && weakestDimension && (
+          <div className="flex flex-wrap gap-3 text-[11px] font-mono">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+              <span>Strongest dimension:</span>
+              <span className="font-bold capitalize">{strongestDimension[0].replace(/_/g, ' ')}</span>
+              <span>({strongestDimension[1]}%)</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300">
+              <span>Needs the most attention:</span>
+              <span className="font-bold capitalize">{weakestDimension[0].replace(/_/g, ' ')}</span>
+              <span>({weakestDimension[1]}%)</span>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-mono">
           {Object.entries(summary.dimension_radar).map(([dim, score]) => (

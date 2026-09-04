@@ -19,7 +19,7 @@ A comprehensive 7-phase master's degree level curriculum and interactive analysi
 ![CRISP-DM Phase 3 Outliers](./screenshots/crispdm_phase3_outliers.png)
 
 ### 4. Phase 4: Income Regression Tournament & Live Salary Predictor
-*Gradient Boosting ($R^2 = 0.91$) vs Baseline OLS ($R^2 = 0.74$) with live salary estimation calculator.*
+*Ridge Regression ($R^2 = 0.685$) narrowly leads a 4-model tournament over Random Forest and Gradient Boosting ($R^2 \approx 0.64$), illustrating Occam's Razor when a linear generative process dominates — with a live salary estimation calculator.*
 ![CRISP-DM Phase 4 Regression](./screenshots/crispdm_phase4_regression.png)
 
 ### 5. Phase 5: Association Pattern Mining

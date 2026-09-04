@@ -154,13 +154,28 @@ export const ChronosTimeSeriesForecaster: React.FC = () => {
                       <line key={i} x1="0" y1={y} x2="700" y2={y} stroke="#1e293b" strokeDasharray="3 3" />
                     ))}
 
+                    {/* "Today" boundary marker between history and forecast */}
+                    {(() => {
+                      const hist = forecastData.history.slice(-20);
+                      const totalLen = hist.length + forecastData.forecast.length;
+                      const boundaryX = ((hist.length - 1) / (totalLen - 1)) * 700;
+                      return (
+                        <g>
+                          <line x1={boundaryX} y1="0" x2={boundaryX} y2="220" stroke="#f59e0b" strokeWidth="1" strokeDasharray="4 3" opacity="0.6" />
+                          <text x={boundaryX + 4} y="14" fill="#fbbf24" fontSize="9" fontFamily="monospace">TODAY</text>
+                        </g>
+                      );
+                    })()}
+
                     {/* Historical trajectory */}
                     {(() => {
                       const hist = forecastData.history.slice(-20);
+                      const fcastLen = forecastData.forecast.length;
+                      const totalLen = hist.length + fcastLen;
                       const maxVal = 2600;
                       const minVal = 800;
                       const points = hist.map((pt: any, idx: number) => {
-                        const x = (idx / 34) * 700;
+                        const x = (idx / (totalLen - 1)) * 700;
                         const y = 220 - ((pt.demand - minVal) / (maxVal - minVal)) * 180;
                         return `${x},${y}`;
                       });
@@ -176,17 +191,19 @@ export const ChronosTimeSeriesForecaster: React.FC = () => {
 
                     {/* Forecast Fan Area (P90 down to P10) */}
                     {(() => {
+                      const hist = forecastData.history.slice(-20);
                       const fcast = forecastData.forecast;
+                      const totalLen = hist.length + fcast.length;
                       const maxVal = 2600;
                       const minVal = 800;
-                      const startX = (19 / 34) * 700;
+                      const startX = ((hist.length - 1) / (totalLen - 1)) * 700;
                       const lastHistY = 220 - ((forecastData.history.slice(-1)[0].demand - minVal) / (maxVal - minVal)) * 180;
 
                       let upperPoints = [`${startX},${lastHistY}`];
                       let lowerPoints = [`${startX},${lastHistY}`];
 
                       fcast.forEach((pt: any, idx: number) => {
-                        const x = ((20 + idx) / 34) * 700;
+                        const x = ((hist.length + idx) / (totalLen - 1)) * 700;
                         const y90 = 220 - ((pt.p90 - minVal) / (maxVal - minVal)) * 180;
                         const y10 = 220 - ((pt.p10 - minVal) / (maxVal - minVal)) * 180;
                         upperPoints.push(`${x},${y90}`);
@@ -199,15 +216,17 @@ export const ChronosTimeSeriesForecaster: React.FC = () => {
 
                     {/* Forecast Median Line */}
                     {(() => {
+                      const hist = forecastData.history.slice(-20);
                       const fcast = forecastData.forecast;
+                      const totalLen = hist.length + fcast.length;
                       const maxVal = 2600;
                       const minVal = 800;
-                      const startX = (19 / 34) * 700;
+                      const startX = ((hist.length - 1) / (totalLen - 1)) * 700;
                       const lastHistY = 220 - ((forecastData.history.slice(-1)[0].demand - minVal) / (maxVal - minVal)) * 180;
 
                       let medPoints = [`${startX},${lastHistY}`];
                       fcast.forEach((pt: any, idx: number) => {
-                        const x = ((20 + idx) / 34) * 700;
+                        const x = ((hist.length + idx) / (totalLen - 1)) * 700;
                         const y50 = 220 - ((pt.p50 - minVal) / (maxVal - minVal)) * 180;
                         medPoints.push(`${x},${y50}`);
                       });
@@ -225,9 +244,11 @@ export const ChronosTimeSeriesForecaster: React.FC = () => {
                     {/* Promotion markers */}
                     {forecastData.forecast.map((pt: any, idx: number) => {
                       if (!pt.promotion) return null;
+                      const hist = forecastData.history.slice(-20);
+                      const totalLen = hist.length + forecastData.forecast.length;
                       const maxVal = 2600;
                       const minVal = 800;
-                      const x = ((20 + idx) / 34) * 700;
+                      const x = ((hist.length + idx) / (totalLen - 1)) * 700;
                       const y50 = 220 - ((pt.p50 - minVal) / (maxVal - minVal)) * 180;
                       return (
                         <circle

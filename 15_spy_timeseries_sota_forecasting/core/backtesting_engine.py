@@ -113,8 +113,21 @@ class QuantitativeBacktestEngine:
         
         # Annualized Sortino Ratio (Downside deviation only)
         downside_returns = strat_returns[strat_returns < 0]
-        downside_dev = np.std(downside_returns) if len(downside_returns) > 0 else 1e-6
+        # A thin or degenerate downside sample (e.g. only 1-2 losing days that
+        # happen to share the exact same slippage-only return) makes the raw
+        # downside deviation collapse to ~0, which used to blow the ratio up
+        # to nonsensical magnitudes (100M+). Require a minimum sample size
+        # before trusting the downside-only estimate, and fall back to
+        # overall strategy volatility otherwise.
+        if len(downside_returns) >= 5:
+            downside_dev = np.std(downside_returns)
+        else:
+            downside_dev = np.std(strat_returns) if np.std(strat_returns) > 1e-9 else 1e-6
         sortino = (np.mean(excess_returns) / (downside_dev + 1e-9)) * np.sqrt(252.0)
+        # Even with the fallback, a near loss-free window can still produce an
+        # unbounded ratio (true Sortino is technically infinite when downside
+        # deviation -> 0). Clip to keep the reported metric interpretable.
+        sortino = float(np.clip(sortino, -50.0, 50.0))
         
         # Maximum Drawdown (MDD)
         equity_arr = np.array(strategy_equity)

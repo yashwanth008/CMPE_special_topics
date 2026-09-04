@@ -45,11 +45,12 @@ Pre-packaged in `skills/` and `.agents/skills/`:
 
 ```bash
 # Backend (FastAPI on Port 8008)
-cd backend
+cd server
+pip install -r requirements.txt
 python -m uvicorn main:app --host 127.0.0.1 --port 8008
 
 # Frontend (Vite React on Port 5181)
-cd frontend
+cd client
 npm install
 npm run dev # Open http://localhost:5181/
 ```

@@ -11,6 +11,106 @@ const CATEGORIES = [
   'Business & Statistical Analytics'
 ];
 
+// Render a friendly, human-readable summary of a skill execution payload instead
+// of a raw JSON dump — scalars become labeled stat chips, dicts-of-numbers become
+// mini metric grids, and large arrays/objects just get a summarized count.
+const humanizeKey = (key) =>
+  key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+const formatValue = (val) => {
+  if (typeof val === 'number') {
+    return Number.isInteger(val) ? val.toLocaleString() : val.toFixed(4);
+  }
+  return String(val);
+};
+
+const ExecutionResultSummary = ({ result }) => {
+  const [showRaw, setShowRaw] = useState(false);
+
+  if (!result) {
+    return (
+      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+        Executing pipeline against training fold...
+      </div>
+    );
+  }
+
+  const scalarEntries = [];
+  const metricGroups = [];
+  const collectionEntries = [];
+
+  Object.entries(result).forEach(([key, val]) => {
+    if (val === null || typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+      scalarEntries.push([key, val]);
+    } else if (Array.isArray(val)) {
+      collectionEntries.push([key, `${val.length} record${val.length === 1 ? '' : 's'}`]);
+    } else if (typeof val === 'object') {
+      const numericPairs = Object.entries(val).filter(([, v]) => typeof v === 'number');
+      if (numericPairs.length > 0 && numericPairs.length === Object.keys(val).length) {
+        metricGroups.push([key, numericPairs]);
+      } else {
+        collectionEntries.push([key, `${Object.keys(val).length} field${Object.keys(val).length === 1 ? '' : 's'}`]);
+      }
+    }
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {scalarEntries.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.6rem' }}>
+          {scalarEntries.map(([key, val]) => (
+            <div key={key} style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.6rem 0.75rem' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{humanizeKey(key)}</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)', marginTop: '0.15rem' }}>{formatValue(val)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {metricGroups.map(([groupKey, pairs]) => (
+        <div key={groupKey}>
+          <div style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--accent-cyan-bright)', marginBottom: '0.4rem' }}>
+            {humanizeKey(groupKey)}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.6rem' }}>
+            {pairs.map(([k, v]) => (
+              <div key={k} style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.25)', borderRadius: 'var(--radius-md)', padding: '0.55rem 0.7rem' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{humanizeKey(k)}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--accent-cyan-bright)', fontFamily: 'var(--font-mono)' }}>{formatValue(v)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {collectionEntries.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {collectionEntries.map(([key, summary]) => (
+            <span key={key} style={{ fontSize: '0.72rem', background: 'rgba(255,255,255,0.06)', padding: '0.25rem 0.6rem', borderRadius: 'var(--radius-full)', color: 'var(--text-secondary)' }}>
+              <strong style={{ color: '#fff' }}>{humanizeKey(key)}:</strong> {summary}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div>
+        <button
+          className="btn-secondary"
+          style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
+          onClick={() => setShowRaw((v) => !v)}
+        >
+          {showRaw ? 'Hide' : 'View'} Raw JSON Telemetry
+        </button>
+        {showRaw && (
+          <pre style={{ marginTop: '0.6rem', background: '#000', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', color: 'var(--accent-cyan-bright)', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', overflowX: 'auto' }}>
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const SkillExplorer = ({ skills = [], onNavigateToBenchmark }) => {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,7 +172,7 @@ export const SkillExplorer = ({ skills = [], onNavigateToBenchmark }) => {
               className={`nav-tab-btn ${selectedCategory === cat ? 'active' : ''}`}
               style={{ fontSize: '0.74rem', padding: '0.35rem 0.7rem' }}
             >
-              {cat === 'ALL' ? 'All 46 Skills' : cat}
+              {cat === 'ALL' ? `All ${skills.length} Skills` : cat}
             </button>
           ))}
         </div>
@@ -188,11 +288,9 @@ export const SkillExplorer = ({ skills = [], onNavigateToBenchmark }) => {
 
               <div>
                 <div style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
-                  Execution Response Payload (JSON Telemetry)
+                  Execution Result Dashboard
                 </div>
-                <pre style={{ background: '#000', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '0.85rem', color: 'var(--accent-cyan-bright)', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', overflowX: 'auto' }}>
-                  {JSON.stringify(executionResult || { status: "Executing pipeline against training fold..." }, null, 2)}
-                </pre>
+                <ExecutionResultSummary result={executionResult?.result} />
               </div>
             </div>
 

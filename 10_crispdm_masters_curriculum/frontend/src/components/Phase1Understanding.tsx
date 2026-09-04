@@ -27,6 +27,13 @@ export const Phase1Understanding: React.FC = () => {
     );
   }
 
+  // Creative addition: derive the single strongest income predictor
+  // directly from the live correlation matrix, rather than hardcoding it.
+  const incomeCorrs = data.correlation_matrix['annual_income'] || {};
+  const strongestPredictor = Object.entries(incomeCorrs)
+    .filter(([feature]) => feature !== 'annual_income')
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+
   return (
     <div className="space-y-8">
       {/* Textbook Header Callout */}
@@ -90,6 +97,16 @@ export const Phase1Understanding: React.FC = () => {
             Pearson $r$
           </span>
         </div>
+
+        {strongestPredictor && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 w-fit">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>
+              Strongest live predictor of income: <span className="font-mono font-bold">{strongestPredictor[0]}</span>{' '}
+              (r = {strongestPredictor[1].toFixed(2)})
+            </span>
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs font-mono text-center border-collapse">

@@ -1,0 +1,32 @@
+# AutoGluon Multi-Layer Stacking & AutoML Tournament Platform - backend dependencies
+#
+# IMPORTANT NOTE ON THE "AutoGluon" NAME:
+# Despite the project title, this backend does NOT import the real `autogluon`
+# PyPI package anywhere (verified: no `import autogluon` / `from autogluon` in
+# server/ or ml/). The AI assistant that built this instead hand-rolled an
+# "AutoGluon-style" 3-level stacking DAG (ml/autogluon_stacking.py) purely with
+# scikit-learn estimators (GradientBoosting/RandomForest/ExtraTrees), using
+# display labels like "LightGBM_L1" / "CatBoost_L1" / "XGBoost_L1" as cosmetic
+# stand-ins for the real gradient-boosting libraries AutoGluon would ensemble.
+# So this project runs perfectly fine on the system Python (3.14) with plain
+# scikit-learn - no venv, no real AutoGluon install, and no GPU/torch needed.
+#
+# If you DO want the real AutoGluon library wired in (e.g. to replace
+# ml/autogluon_stacking.py with genuine AutoGluon TabularPredictor calls),
+# note that AutoGluon requires Python <=3.11 as of this writing. Create a
+# dedicated venv the same way this repo does for 07's sibling heavy project:
+#   /opt/homebrew/bin/python3.11 -m venv .venv
+#   source .venv/bin/activate
+#   pip install autogluon fastapi "uvicorn[standard]" pydantic numpy pandas scikit-learn
+#
+# Install (current, working, system Python):
+#   cd 07_automl_autogluon/server
+#   python3 -m pip install -r requirements.txt
+#   python3 -m uvicorn main:app --host 127.0.0.1 --port 8007
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+numpy>=1.26
+pandas>=2.2
+scikit-learn>=1.4

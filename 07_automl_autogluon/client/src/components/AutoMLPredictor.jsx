@@ -440,6 +440,29 @@ export const AutoMLPredictor = () => {
                 </div>
               </>
             )}
+
+            {/* Base Model Agreement Meter */}
+            {predictionResult?.model_ensemble_breakdown?.Level_1_Base_Predictions && (() => {
+              const vals = Object.values(predictionResult.model_ensemble_breakdown.Level_1_Base_Predictions);
+              const spread = Math.max(...vals) - Math.min(...vals);
+              const ref = task === 'classification' ? 1.0 : (predictionResult?.estimated_value || 1);
+              const agreementPct = Math.max(0, Math.min(100, 100 - (spread / ref) * (task === 'classification' ? 100 : 400)));
+              const agreementColor = agreementPct > 80 ? 'var(--accent-emerald-bright)' : agreementPct > 55 ? 'var(--accent-amber)' : 'var(--accent-rose)';
+              return (
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.65rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Base Model Agreement</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: agreementColor }}>{agreementPct.toFixed(0)}%</span>
+                  </div>
+                  <div style={{ width: '100%', height: 6, background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                    <div style={{ width: `${agreementPct}%`, height: '100%', background: agreementColor, borderRadius: 'var(--radius-full)', transition: 'width 0.3s ease' }}></div>
+                  </div>
+                  <div style={{ fontSize: '0.66rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                    Measures how tightly the 5 Level-1 base learners cluster around the ensemble output — low spread signals a stable, confident stack.
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Model Breakdown */}

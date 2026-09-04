@@ -14,29 +14,54 @@ export const TrainingTelemetry = () => {
   const [telemetry, setTelemetry] = useState(null);
 
   useEffect(() => {
+    // NOTE: the real /api/telemetry payload nests the data under the
+    // "telemetry" key (not "data"), and uses flat field names
+    // (train_loss_curve, val_loss_curve, final_train_loss, final_val_loss,
+    // perplexity, parameters) rather than the training_curve/validation_curve/
+    // final_metrics/config shape this component originally expected. That
+    // mismatch meant `telemetry` was always left `undefined` here, silently
+    // falling back to hardcoded placeholder numbers (672,512 params, 0.89
+    // loss, 96 token context) and permanently-empty charts, regardless of
+    // what the model actually trained to. Fixed to read the real shape.
     api.getTrainingTelemetry().then((res) => {
-      if (res.success) setTelemetry(res.data);
+      if (res.success) setTelemetry(res.telemetry);
     });
   }, []);
 
-  const trainCurve = telemetry?.training_curve || [];
-  const valCurve = telemetry?.validation_curve || [];
-  const metrics = telemetry?.final_metrics || { train_loss: 0.85, val_loss: 0.89, perplexity: 2.43 };
-  const config = telemetry?.config || { embedding_dim: 128, num_layers: 3, num_heads: 4, ffn_hidden_dim: 384, context_window: 96 };
+  const trainCurve = telemetry?.train_loss_curve || [];
+  const valCurveRaw = telemetry?.val_loss_curve || [];
+  const valCurve = valCurveRaw.map((val_loss, i) => ({
+    epoch: i + 1,
+    val_loss,
+    perplexity: Math.round(Math.exp(Math.min(val_loss, 20)) * 100) / 100
+  }));
+  const metrics = {
+    train_loss: telemetry?.final_train_loss ?? 0.85,
+    val_loss: telemetry?.final_val_loss ?? 0.89,
+    perplexity: telemetry?.perplexity ?? 2.43
+  };
+  const config = {
+    embedding_dim: 128,
+    num_layers: 3,
+    num_heads: 4,
+    ffn_hidden_dim: 384,
+    context_window: telemetry?.max_seq_len ?? 192
+  };
+  const parametersCount = telemetry?.parameters;
 
   // Training Loss Chart SVG Calculations
   const width = 640;
   const height = 180;
   const padding = 35;
 
-  const losses = trainCurve.length > 0 ? trainCurve.map((c) => c.train_loss) : [4.5, 2.5, 1.2, 0.8];
+  const losses = trainCurve.length > 0 ? trainCurve : [4.5, 2.5, 1.2, 0.8];
   const maxL = Math.max(...losses) * 1.05;
   const minL = Math.min(...losses) * 0.95;
 
   const getX = (i) => padding + (i / Math.max(1, trainCurve.length - 1)) * (width - 2 * padding);
   const getY = (v) => height - padding - ((v - minL) / (maxL - minL || 1)) * (height - 2 * padding);
 
-  const polylinePoints = trainCurve.map((c, i) => `${getX(i)},${getY(c.train_loss)}`).join(' ');
+  const polylinePoints = trainCurve.map((v, i) => `${getX(i)},${getY(v)}`).join(' ');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -58,7 +83,7 @@ export const TrainingTelemetry = () => {
             Total Parameters
           </span>
           <div className="telemetry-val" style={{ color: '#38bdf8' }}>
-            {telemetry?.parameters_count?.toLocaleString() || '672,512'}
+            {parametersCount?.toLocaleString() || '505,728'}
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
             3 Layers • 4 Heads • Dim 128

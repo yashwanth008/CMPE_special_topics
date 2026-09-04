@@ -10,7 +10,8 @@ import {
   Bot,
   User,
   Clock,
-  Gauge
+  Gauge,
+  ShieldAlert
 } from 'lucide-react';
 
 export const ChatInterface = ({ presets = [] }) => {
@@ -54,7 +55,7 @@ export const ChatInterface = ({ presets = [] }) => {
     setStreamingMetrics({ tokens: 0, tokSec: 0, ttft: 0 });
 
     // Placeholder assistant message
-    const assistantMsg = { role: 'assistant', content: '' };
+    const assistantMsg = { role: 'assistant', content: '', lowConfidence: false };
     setMessages((prev) => [...prev, assistantMsg]);
 
     await api.streamChat(
@@ -68,13 +69,24 @@ export const ChatInterface = ({ presets = [] }) => {
         max_tokens: maxTokens
       },
       (chunk) => {
+        // IMPORTANT: build a brand-new message object instead of mutating the
+        // existing one in place. React 18 StrictMode (enabled in main.jsx)
+        // intentionally double-invokes state updater functions in development
+        // to surface exactly this class of bug -- an in-place mutation like
+        // `last.content += chunk.text` leaves its side effect visible to the
+        // second invocation, so every streamed character got appended twice,
+        // producing scrambled, duplicated text in the chat UI (e.g. "2 2 ++ 22").
         setMessages((prev) => {
-          const next = [...prev];
-          const last = next[next.length - 1];
-          if (last && last.role === 'assistant') {
-            last.content += chunk.text;
-          }
-          return next;
+          const last = prev[prev.length - 1];
+          if (!last || last.role !== 'assistant') return prev;
+          const updatedLast = {
+            ...last,
+            content: last.content + chunk.text,
+            ...(chunk.low_confidence
+              ? { lowConfidence: true, avgConfidence: chunk.avg_confidence }
+              : {})
+          };
+          return [...prev.slice(0, -1), updatedLast];
         });
         setStreamingMetrics({
           tokens: chunk.tokens_generated,
@@ -90,6 +102,18 @@ export const ChatInterface = ({ presets = [] }) => {
           tokSec: doneData.tokens_per_sec,
           totalTime: doneData.total_time_sec
         }));
+        if (doneData.low_confidence) {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (!last || last.role !== 'assistant') return prev;
+            const updatedLast = {
+              ...last,
+              lowConfidence: true,
+              avgConfidence: doneData.avg_confidence
+            };
+            return [...prev.slice(0, -1), updatedLast];
+          });
+        }
       },
       (err) => {
         setIsStreaming(false);
@@ -159,6 +183,28 @@ export const ChatInterface = ({ presets = [] }) => {
                   {isUser ? <User size={16} /> : <Zap size={16} />}
                 </div>
                 <div className="bubble-content">
+                  {m.lowConfidence && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        color: '#f59e0b',
+                        background: 'rgba(245, 158, 11, 0.1)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '0.2rem 0.5rem',
+                        marginBottom: '0.45rem',
+                        width: 'fit-content'
+                      }}
+                      title="This model detected its own generated text didn't resemble real words from its training vocabulary, and abstained instead of returning corrupted output."
+                    >
+                      <ShieldAlert size={12} />
+                      <span>OUT-OF-DISTRIBUTION — ABSTAINED (avoiding corrupted output)</span>
+                    </div>
+                  )}
                   <div style={{ whiteSpace: 'pre-wrap' }}>
                     {m.content}
                     {isStreaming && isLatestAssistant && <span className="cursor-blink" />}

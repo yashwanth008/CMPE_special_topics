@@ -50,12 +50,18 @@ class AbTestCalculateRequest(BaseModel):
     n_treatment: int = Field(..., ge=1)
     x_treatment: int = Field(..., ge=0)
 
+def _get_catalog_count():
+    if os.path.exists(CATALOG_PATH):
+        with open(CATALOG_PATH, 'r', encoding='utf-8') as f:
+            return len(json.load(f))
+    return 0
+
 @app.get("/api/health")
 def health_check():
     return {
         "status": "healthy",
         "service": "Data Science & Analytics Skills Mastery Lab",
-        "total_skills_installed": 46,
+        "total_skills_installed": _get_catalog_count(),
         "active_benchmarks": ["Titanic", "House Prices", "Credit Card Fraud", "E-Commerce", "Data Quality"]
     }
 

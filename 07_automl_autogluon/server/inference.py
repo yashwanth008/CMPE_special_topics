@@ -49,12 +49,17 @@ class AutoMLInferenceEngine:
         is_churn = bool(churn_prob >= 0.50)
 
         # Individual Level 1 Base Model simulated predictions
+        # Clamped to [0.01, 0.99] so injected noise can never push a probability
+        # below 0% or above 100% (a real classifier's output is always a valid probability).
+        def _clamp_prob(p):
+            return round(min(0.99, max(0.01, p)), 3)
+
         base_preds = {
-            "LightGBM_L1": round(churn_prob + np.random.uniform(-0.02, 0.02), 3),
-            "CatBoost_L1": round(churn_prob + np.random.uniform(-0.025, 0.025), 3),
-            "XGBoost_L1": round(churn_prob + np.random.uniform(-0.03, 0.03), 3),
-            "RandomForest_L1": round(churn_prob + np.random.uniform(-0.04, 0.04), 3),
-            "NeuralNetFastAI_L1": round(churn_prob + np.random.uniform(-0.035, 0.035), 3)
+            "LightGBM_L1": _clamp_prob(churn_prob + np.random.uniform(-0.02, 0.02)),
+            "CatBoost_L1": _clamp_prob(churn_prob + np.random.uniform(-0.025, 0.025)),
+            "XGBoost_L1": _clamp_prob(churn_prob + np.random.uniform(-0.03, 0.03)),
+            "RandomForest_L1": _clamp_prob(churn_prob + np.random.uniform(-0.04, 0.04)),
+            "NeuralNetFastAI_L1": _clamp_prob(churn_prob + np.random.uniform(-0.035, 0.035))
         }
 
         # Level 2 Stacked Model

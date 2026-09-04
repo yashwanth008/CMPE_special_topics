@@ -56,7 +56,7 @@ export const Phase7Synthesis: React.FC = () => {
             Regression Tournament
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Gradient Boosting achieved top-tier predictive accuracy with $R^2 = 0.91$, outperforming linear baselines ($R^2 = 0.74$) by capturing non-linear interactions.
+            Ridge Regression edged out the tournament ($R^2 = 0.685$) since the income generative process is dominated by additive linear effects; tree ensembles (Random Forest, Gradient Boosting) trailed slightly ($R^2 \approx 0.64$–$0.65$), a textbook reminder to prefer the simpler model (Occam's Razor) when accuracy gains from complexity don't materialize.
           </p>
         </div>
 

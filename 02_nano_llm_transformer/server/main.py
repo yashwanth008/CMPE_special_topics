@@ -165,7 +165,12 @@ def get_telemetry():
     chk_path = os.path.join(os.path.dirname(__file__), 'checkpoints/telemetry.json')
     if os.path.exists(chk_path):
         with open(chk_path, 'r', encoding='utf-8') as f:
-            return {"success": True, "telemetry": json.load(f)}
+            data = json.load(f)
+        # Enrich with the actual trained context window so the frontend
+        # doesn't have to guess/hardcode it.
+        if engine.model is not None and "max_seq_len" not in data:
+            data["max_seq_len"] = engine.model.max_seq_len
+        return {"success": True, "telemetry": data}
     return {"success": False, "message": "No training telemetry found"}
 
 @app.post("/api/admin/retrain")

@@ -55,7 +55,7 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenCrispDm={() => setIsCrispDmOpen(true)}
-        totalSkills={46}
+        totalSkills={skills.length}
       />
 
       <main className="main-content">

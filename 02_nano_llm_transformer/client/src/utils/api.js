@@ -14,7 +14,7 @@ export const api = {
   },
 
   async getTrainingTelemetry() {
-    const res = await fetch('/api/training/telemetry');
+    const res = await fetch('/api/telemetry');
     if (!res.ok) throw new Error('Failed to fetch telemetry');
     return res.json();
   },
@@ -30,7 +30,7 @@ export const api = {
   },
 
   async tokenizeText(text) {
-    const res = await fetch('/api/tokenize', {
+    const res = await fetch('/api/inspect/tokenize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
@@ -40,7 +40,7 @@ export const api = {
   },
 
   async triggerLiveRetrain(params = {}) {
-    const res = await fetch('/api/train/live', {
+    const res = await fetch('/api/admin/retrain', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params)

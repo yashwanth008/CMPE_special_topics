@@ -5,7 +5,7 @@ export const Header = ({
   activeTab,
   setActiveTab,
   onOpenCrispDm,
-  totalSkills = 46
+  totalSkills = 13
 }) => {
   return (
     <header className="header">
@@ -29,7 +29,7 @@ export const Header = ({
           id="tab-skills-catalog"
         >
           <Layers size={15} />
-          <span>46 Skills Catalog</span>
+          <span>{totalSkills} Skills Catalog</span>
         </button>
         <button
           className={`nav-tab-btn ${activeTab === 'titanic' ? 'active' : ''}`}

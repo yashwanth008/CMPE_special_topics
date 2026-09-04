@@ -6,6 +6,14 @@ export const DecompositionView: React.FC = () => {
   const [data, setData] = useState<{ records: TimeSeriesRecord[]; stationarity: StationarityInfo } | null>(null);
   const [acfPacf, setAcfPacf] = useState<{ lags: number[]; acf: number[]; pacf: number[]; significance_bound_95: number } | null>(null);
 
+  // Auto-detect the strongest non-trivial seasonal lag (skip lag 0, which is always 1.0)
+  const strongestLag = acfPacf
+    ? acfPacf.acf.slice(1).reduce(
+        (best, val, i) => (Math.abs(val) > Math.abs(best.val) ? { lag: i + 1, val } : best),
+        { lag: 1, val: acfPacf.acf[1] ?? 0 }
+      )
+    : null;
+
   useEffect(() => {
     fetch('http://127.0.0.1:8012/api/dataset/timeseries?limit=90')
       .then((res) => res.json())
@@ -58,6 +66,18 @@ export const DecompositionView: React.FC = () => {
         </div>
       )}
 
+      {/* Auto-Detected Strongest Lag Insight */}
+      {strongestLag && (
+        <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-950/10 flex items-center gap-3 font-mono text-xs">
+          <span className="text-amber-400 text-lg leading-none">⚡</span>
+          <span className="text-slate-300">
+            Auto-detected strongest cyclical lag: <span className="text-amber-400 font-bold">lag {strongestLag.lag}</span>{' '}
+            (ρ = {strongestLag.val.toFixed(3)}) —
+            {strongestLag.lag % 7 === 0 ? ' consistent with weekly seasonality.' : ' a non-weekly periodic component worth investigating.'}
+          </span>
+        </div>
+      )}
+
       {/* ACF & PACF Visual Bars */}
       {acfPacf && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -71,7 +91,7 @@ export const DecompositionView: React.FC = () => {
             </div>
 
             <div className="h-44 flex items-end gap-1 pt-6 px-2 bg-slate-950/80 rounded-xl border border-slate-800 overflow-x-auto">
-              {acfPacf.acf.slice(1, 29).map((val, idx) => {
+              {acfPacf.acf.slice(1, 41).map((val, idx) => {
                 const height = Math.abs(val) * 100;
                 const isSignificant = Math.abs(val) > acfPacf.significance_bound_95;
                 return (
@@ -102,7 +122,7 @@ export const DecompositionView: React.FC = () => {
             </div>
 
             <div className="h-44 flex items-end gap-1 pt-6 px-2 bg-slate-950/80 rounded-xl border border-slate-800 overflow-x-auto">
-              {acfPacf.pacf.slice(1, 29).map((val, idx) => {
+              {acfPacf.pacf.slice(1, 41).map((val, idx) => {
                 const height = Math.abs(val) * 100;
                 const isSignificant = Math.abs(val) > acfPacf.significance_bound_95;
                 return (

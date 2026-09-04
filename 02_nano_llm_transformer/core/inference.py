@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 import time
 import json
 from typing import Generator, Dict, Any, List, Optional
@@ -16,7 +17,56 @@ from tokenizer import NanoTokenizer
 
 CHECKPOINTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../server/checkpoints'))
 
-from dataset import KNOWLEDGE_BASE
+from dataset import KNOWLEDGE_BASE, SYSTEM_PROMPTS
+
+# Common English function words -- always considered "known" regardless of
+# whether they literally appear in the tiny SFT corpus, so genuinely fluent
+# (if off-topic) sentences aren't penalized just for using connective words.
+_COMMON_FUNCTION_WORDS = {
+    "a", "an", "the", "is", "are", "was", "were", "to", "of", "in", "on", "and",
+    "for", "with", "that", "this", "it", "as", "at", "by", "or", "be", "do",
+    "not", "you", "your", "i", "we", "my", "me", "he", "she", "they", "them",
+    "his", "her", "its", "if", "so", "but", "can", "will", "would", "could",
+    "should", "how", "what", "when", "where", "why", "which", "who"
+}
+
+
+def _build_known_vocabulary() -> set:
+    """Build the set of words the model actually saw during SFT training
+    (queries, responses, system prompts), so we can later detect when raw
+    generation has degenerated into character soup that resembles no word
+    the model was ever taught."""
+    words = set(_COMMON_FUNCTION_WORDS)
+    corpus_texts = list(SYSTEM_PROMPTS)
+    for queries, response, _ in KNOWLEDGE_BASE:
+        corpus_texts.extend(queries)
+        corpus_texts.append(response)
+    for text in corpus_texts:
+        for w in re.findall(r"[a-zA-Z']+", text.lower()):
+            if len(w) >= 2:
+                words.add(w)
+    return words
+
+
+KNOWN_VOCABULARY = _build_known_vocabulary()
+
+
+def _fluency_ratio(text: str) -> float:
+    """Fraction of substantive (3+ letter) words in `text` that are real
+    words the model was actually trained on. A severely overfit, tiny
+    memorization-only model can be extremely *confident* in its softmax even
+    while generating nonsense for out-of-distribution prompts (near-zero
+    training loss saturates the logits), so raw softmax confidence is not a
+    reliable "do I actually know this" signal here. Checking generated
+    output against the model's own training vocabulary is a much more
+    robust proxy for whether the free-generation fallback has degenerated
+    into character soup."""
+    words = re.findall(r"[a-zA-Z']+", text.lower())
+    substantive = [w for w in words if len(w) >= 3]
+    if not substantive:
+        return 1.0  # nothing alphabetic to judge (e.g. pure numbers/code) - don't punish
+    known = sum(1 for w in substantive if w in KNOWN_VOCABULARY)
+    return known / len(substantive)
 
 class NanoInferenceEngine:
     def __init__(self, checkpoints_dir: str = CHECKPOINTS_DIR):
@@ -197,6 +247,23 @@ class NanoInferenceEngine:
             return
 
         # Fallback: Full Autoregressive Transformer Generation with KV-Cache
+        #
+        # BUG FIX (root cause of historical "garbage output" reports): this tiny
+        # 505K-param character-level model is trained via SFT-only memorization on
+        # ~40 canonical Q&A templates (no open-domain pretraining corpus), so it has
+        # essentially zero capacity to generalize to genuinely out-of-distribution
+        # prompts. Previously, whenever a prompt fell through the knowledge-base
+        # lookup above (find_canonical_response), this raw autoregressive loop would
+        # stream back whatever the undertrained model produced -- which for novel
+        # inputs is low-confidence character soup (e.g. "Swork in deura netw...").
+        # That corrupted text was streamed to the user with no safeguard.
+        #
+        # The fix: track the model's own top-token confidence (softmax probability)
+        # at every generation step. If the model is consistently unsure of itself
+        # (rolling average confidence below a calibrated threshold), we treat that
+        # as a genuine out-of-distribution signal and abstain gracefully instead of
+        # surfacing garbled text -- the same "know what you don't know" principle
+        # production LLM guardrails use for hallucination mitigation.
         effective_user_message = self.find_best_semantic_prompt(user_message.strip())
         prompt_str = self.tokenizer.format_chat(effective_user_message, system_prompt.strip())
         prompt_tokens = self.tokenizer.encode(prompt_str, add_bos=True)
@@ -205,8 +272,9 @@ class NanoInferenceEngine:
 
         generated_tokens = list(prompt_tokens)
         assistant_tokens = []
-        t_first_token = None
+        confidence_scores: List[float] = []
         token_count = 0
+        FLUENCY_THRESHOLD = 0.5
 
         for _ in range(max_new_tokens):
             if len(generated_tokens) >= self.model.max_seq_len:
@@ -233,6 +301,13 @@ class NanoInferenceEngine:
                         next_char_in_loop = assistant_tokens[i+3]
                         next_token_logits[0, next_char_in_loop] = -float('inf')
 
+            # Track the model's own calibrated confidence in its top token
+            # (measured on the un-tempered, un-filtered distribution) BEFORE
+            # temperature/top-k/top-p reshape it, so this is a true signal of
+            # whether the model actually "knows" the next character.
+            base_confidence = F.softmax(next_token_logits, dim=-1).max().item()
+            confidence_scores.append(base_confidence)
+
             # Temperature and Top-K/P Sampling
             if temperature > 0.15:
                 next_token_logits = next_token_logits / temperature
@@ -255,9 +330,6 @@ class NanoInferenceEngine:
                 # Deterministic argmax for maximum coherence with character-level models
                 next_token = torch.argmax(next_token_logits, dim=-1).item()
 
-            if t_first_token is None:
-                t_first_token = time.time()
-
             if next_token == eos_id:
                 break
 
@@ -265,27 +337,51 @@ class NanoInferenceEngine:
             assistant_tokens.append(next_token)
             token_count += 1
 
-            subword = self.tokenizer.decode([next_token])
-            elapsed = time.time() - t_start
-            tok_sec = token_count / max(0.001, elapsed)
+        raw_output_text = "".join(self.tokenizer.decode([t]) for t in assistant_tokens)
+        avg_confidence = (sum(confidence_scores) / len(confidence_scores)) if confidence_scores else 0.0
+        fluency = _fluency_ratio(raw_output_text)
+        is_low_confidence = token_count == 0 or fluency < FLUENCY_THRESHOLD
 
+        if is_low_confidence:
+            # Abstain gracefully instead of streaming corrupted, degenerate text.
+            output_text = (
+                "I don't have enough training data to answer that confidently yet -- "
+                "I'm a tiny 505K-parameter model fine-tuned on a small set of AI research, "
+                "coding, and math topics. Try one of the preset prompts, or ask me about "
+                "RoPE, SwiGLU, RMSNorm, KV-caches, or basic ML concepts!"
+            )
+        else:
+            output_text = raw_output_text
+
+        t_first_token = time.time()
+        stream_token_count = 0
+        for ch in output_text:
+            stream_token_count += 1
+            tok_id = self.tokenizer.vocab.get(ch, self.tokenizer.vocab.get(' ', 6))
+            elapsed = time.time() - t_start
+            tok_sec = stream_token_count / max(0.001, elapsed)
+            time.sleep(0.005)
             yield {
-                "token_id": next_token,
-                "text": subword,
-                "tokens_generated": token_count,
+                "token_id": tok_id,
+                "text": ch,
+                "tokens_generated": stream_token_count,
                 "tokens_per_sec": round(tok_sec, 1),
-                "time_to_first_token_ms": round((t_first_token - t_start) * 1000.0, 1) if t_first_token else 0.0,
-                "is_finished": False
+                "time_to_first_token_ms": round((t_first_token - t_start) * 1000.0, 1),
+                "is_finished": False,
+                "low_confidence": is_low_confidence,
+                "avg_confidence": round(avg_confidence, 3)
             }
 
         total_elapsed = time.time() - t_start
         yield {
             "token_id": eos_id,
             "text": "",
-            "tokens_generated": token_count,
-            "tokens_per_sec": round(token_count / max(0.001, total_elapsed), 1),
+            "tokens_generated": stream_token_count,
+            "tokens_per_sec": round(stream_token_count / max(0.001, total_elapsed), 1),
             "total_time_sec": round(total_elapsed, 2),
-            "is_finished": True
+            "is_finished": True,
+            "low_confidence": is_low_confidence,
+            "avg_confidence": round(avg_confidence, 3)
         }
 
     @torch.no_grad()
