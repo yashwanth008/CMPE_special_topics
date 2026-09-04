@@ -5,3 +5,5 @@ __pycache__/
 .chrome-profile*
 .env
 .DS_Store
+.run/
+catboost_info/
