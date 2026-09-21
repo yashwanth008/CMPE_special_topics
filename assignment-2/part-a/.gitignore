@@ -5,3 +5,4 @@ __pycache__/
 .minicoder/
 .pytest_cache/
 demo/workspace/
+*.env*
