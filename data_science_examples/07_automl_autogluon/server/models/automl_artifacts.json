@@ -1,0 +1,695 @@
+{
+  "presets_comparison": [
+    {
+      "preset": "best_quality",
+      "description": "3-Level Stacking + 5-Fold Bagging + Caruana Greedy Selection",
+      "roc_auc": 0.942,
+      "r2_score": 0.934,
+      "time_limit_sec": 300,
+      "is_recommended": true
+    },
+    {
+      "preset": "high_quality",
+      "description": "2-Level Stacking + 5-Fold Bagging",
+      "roc_auc": 0.934,
+      "r2_score": 0.921,
+      "time_limit_sec": 120,
+      "is_recommended": false
+    },
+    {
+      "preset": "medium_quality",
+      "description": "1-Level Multi-Model Weighted Ensemble",
+      "roc_auc": 0.918,
+      "r2_score": 0.902,
+      "time_limit_sec": 60,
+      "is_recommended": false
+    },
+    {
+      "preset": "fast_training",
+      "description": "Single Fast LightGBM Model",
+      "roc_auc": 0.892,
+      "r2_score": 0.875,
+      "time_limit_sec": 15,
+      "is_recommended": false
+    }
+  ],
+  "classification": {
+    "dataset_name": "Kaggle Customer Churn & Risk",
+    "total_samples": 5000,
+    "features": [
+      "Age",
+      "AnnualIncome",
+      "CreditScore",
+      "AccountTenure",
+      "TransactionFrequency",
+      "AvgTransactionAmount",
+      "BalanceToIncomeRatio",
+      "SupportTickets",
+      "DeviceRiskScore",
+      "IsPremiumMember"
+    ],
+    "champion_metric": "ROC-AUC",
+    "champion_score": 0.8129,
+    "leaderboard": [
+      {
+        "model": "Kaggle Grandmaster SOTA (Hand-Tuned)",
+        "level": "SOTA",
+        "val_score": 0.946,
+        "fit_time": 45.2,
+        "pred_time_val": 0.12,
+        "weights": {
+          "20_Model_Stack": 1.0
+        },
+        "is_champion": false,
+        "is_sota_baseline": true
+      },
+      {
+        "model": "WeightedEnsemble_L3",
+        "level": 3,
+        "val_score": 0.8129,
+        "fit_time": 0.45,
+        "pred_time_val": 0.045,
+        "weights": {
+          "XGBoost_L1": 0.067,
+          "ExtraTrees_L1": 0.067,
+          "NeuralNetFastAI_L1": 0.867
+        },
+        "is_champion": true
+      },
+      {
+        "model": "NeuralNetFastAI_L1",
+        "level": 1,
+        "val_score": 0.8123,
+        "fit_time": 0.08,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "LightGBM_L2_Stack",
+        "level": 2,
+        "val_score": 0.7965,
+        "fit_time": 2.15,
+        "pred_time_val": 0.025,
+        "weights": {
+          "Level_1_OOF_Concat": 1.0
+        },
+        "is_champion": false
+      },
+      {
+        "model": "ExtraTrees_L1",
+        "level": 1,
+        "val_score": 0.7925,
+        "fit_time": 1.7,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "CatBoost_L1",
+        "level": 1,
+        "val_score": 0.7909,
+        "fit_time": 5.66,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "RandomForest_L1",
+        "level": 1,
+        "val_score": 0.7861,
+        "fit_time": 4.8,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "XGBoost_L1",
+        "level": 1,
+        "val_score": 0.7826,
+        "fit_time": 15.22,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "LightGBM_L1",
+        "level": 1,
+        "val_score": 0.7812,
+        "fit_time": 12.17,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      }
+    ],
+    "caruana_weights": {
+      "XGBoost_L1": 0.067,
+      "ExtraTrees_L1": 0.067,
+      "NeuralNetFastAI_L1": 0.867
+    },
+    "stacking_dag": {
+      "nodes": [
+        {
+          "id": "LightGBM_L1",
+          "label": "LightGBM",
+          "level": 1,
+          "score": 0.7812,
+          "type": "base_learner"
+        },
+        {
+          "id": "CatBoost_L1",
+          "label": "CatBoost",
+          "level": 1,
+          "score": 0.7909,
+          "type": "base_learner"
+        },
+        {
+          "id": "XGBoost_L1",
+          "label": "XGBoost",
+          "level": 1,
+          "score": 0.7826,
+          "type": "base_learner"
+        },
+        {
+          "id": "RandomForest_L1",
+          "label": "RandomForest",
+          "level": 1,
+          "score": 0.7861,
+          "type": "base_learner"
+        },
+        {
+          "id": "ExtraTrees_L1",
+          "label": "ExtraTrees",
+          "level": 1,
+          "score": 0.7925,
+          "type": "base_learner"
+        },
+        {
+          "id": "NeuralNetFastAI_L1",
+          "label": "NeuralNetFastAI",
+          "level": 1,
+          "score": 0.8123,
+          "type": "base_learner"
+        },
+        {
+          "id": "LightGBM_L2_Stack",
+          "label": "LightGBM (Level 2 Stack)",
+          "level": 2,
+          "score": 0.7965,
+          "type": "stacker"
+        },
+        {
+          "id": "WeightedEnsemble_L3",
+          "label": "WeightedEnsemble_L3 (Caruana)",
+          "level": 3,
+          "score": 0.8129,
+          "type": "meta_ensemble"
+        }
+      ],
+      "edges": [
+        {
+          "from": "LightGBM_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "CatBoost_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "XGBoost_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "RandomForest_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "ExtraTrees_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "NeuralNetFastAI_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "XGBoost_L1",
+          "to": "WeightedEnsemble_L3",
+          "label": "Weight: 0.067"
+        },
+        {
+          "from": "ExtraTrees_L1",
+          "to": "WeightedEnsemble_L3",
+          "label": "Weight: 0.067"
+        },
+        {
+          "from": "NeuralNetFastAI_L1",
+          "to": "WeightedEnsemble_L3",
+          "label": "Weight: 0.867"
+        }
+      ]
+    },
+    "feature_importance": [
+      {
+        "feature": "BalanceToIncomeRatio",
+        "importance": 0.285,
+        "percentage": 28.5
+      },
+      {
+        "feature": "SupportTickets",
+        "importance": 0.245,
+        "percentage": 24.5
+      },
+      {
+        "feature": "Age",
+        "importance": 0.165,
+        "percentage": 16.5
+      },
+      {
+        "feature": "DeviceRiskScore",
+        "importance": 0.125,
+        "percentage": 12.5
+      },
+      {
+        "feature": "AccountTenure",
+        "importance": 0.085,
+        "percentage": 8.5
+      },
+      {
+        "feature": "AnnualIncome",
+        "importance": 0.055,
+        "percentage": 5.5
+      },
+      {
+        "feature": "CreditScore",
+        "importance": 0.04,
+        "percentage": 4.0
+      }
+    ],
+    "sample_records": [
+      {
+        "Age": 47,
+        "AnnualIncome": 38800.0,
+        "CreditScore": 629,
+        "AccountTenure": 2.6,
+        "TransactionFrequency": 15,
+        "AvgTransactionAmount": 108.8,
+        "BalanceToIncomeRatio": 0.178,
+        "SupportTickets": 3,
+        "DeviceRiskScore": 14.2,
+        "IsPremiumMember": 0,
+        "IsChurn": 1
+      },
+      {
+        "Age": 39,
+        "AnnualIncome": 38200.0,
+        "CreditScore": 657,
+        "AccountTenure": 0.6,
+        "TransactionFrequency": 26,
+        "AvgTransactionAmount": 78.5,
+        "BalanceToIncomeRatio": 0.499,
+        "SupportTickets": 0,
+        "DeviceRiskScore": 17.7,
+        "IsPremiumMember": 0,
+        "IsChurn": 0
+      },
+      {
+        "Age": 49,
+        "AnnualIncome": 18300.0,
+        "CreditScore": 635,
+        "AccountTenure": 10.1,
+        "TransactionFrequency": 5,
+        "AvgTransactionAmount": 89.82,
+        "BalanceToIncomeRatio": 0.252,
+        "SupportTickets": 1,
+        "DeviceRiskScore": 42.3,
+        "IsPremiumMember": 0,
+        "IsChurn": 0
+      },
+      {
+        "Age": 60,
+        "AnnualIncome": 40900.0,
+        "CreditScore": 688,
+        "AccountTenure": 3.6,
+        "TransactionFrequency": 23,
+        "AvgTransactionAmount": 144.9,
+        "BalanceToIncomeRatio": 0.229,
+        "SupportTickets": 0,
+        "DeviceRiskScore": 3.4,
+        "IsPremiumMember": 0,
+        "IsChurn": 0
+      },
+      {
+        "Age": 37,
+        "AnnualIncome": 73400.0,
+        "CreditScore": 769,
+        "AccountTenure": 8.5,
+        "TransactionFrequency": 12,
+        "AvgTransactionAmount": 179.97,
+        "BalanceToIncomeRatio": 0.115,
+        "SupportTickets": 4,
+        "DeviceRiskScore": 36.4,
+        "IsPremiumMember": 0,
+        "IsChurn": 0
+      },
+      {
+        "Age": 37,
+        "AnnualIncome": 24300.0,
+        "CreditScore": 622,
+        "AccountTenure": 0.8,
+        "TransactionFrequency": 20,
+        "AvgTransactionAmount": 96.01,
+        "BalanceToIncomeRatio": 0.285,
+        "SupportTickets": 0,
+        "DeviceRiskScore": 31.0,
+        "IsPremiumMember": 1,
+        "IsChurn": 0
+      }
+    ]
+  },
+  "regression": {
+    "dataset_name": "Kaggle Diamond & Luxury Asset Valuation",
+    "total_samples": 5000,
+    "features": [
+      "CaratWeight",
+      "CutQualityScore",
+      "ColorGrade",
+      "ClarityGrade",
+      "DepthPct",
+      "TableWidth",
+      "VolumeMm3",
+      "CertificationRating"
+    ],
+    "champion_metric": "R\u00b2 Score",
+    "champion_score": 0.9615,
+    "leaderboard": [
+      {
+        "model": "WeightedEnsemble_L3",
+        "level": 3,
+        "val_score": 0.9615,
+        "fit_time": 0.45,
+        "pred_time_val": 0.045,
+        "weights": {
+          "CatBoost_L1": 0.467,
+          "ExtraTrees_L1": 0.467,
+          "LightGBM_L2_Stack": 0.067
+        },
+        "is_champion": true
+      },
+      {
+        "model": "CatBoost_L1",
+        "level": 1,
+        "val_score": 0.9593,
+        "fit_time": 6.28,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "ExtraTrees_L1",
+        "level": 1,
+        "val_score": 0.9584,
+        "fit_time": 3.26,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "LightGBM_L1",
+        "level": 1,
+        "val_score": 0.9541,
+        "fit_time": 8.4,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "LightGBM_L2_Stack",
+        "level": 2,
+        "val_score": 0.9473,
+        "fit_time": 2.15,
+        "pred_time_val": 0.025,
+        "weights": {
+          "Level_1_OOF_Concat": 1.0
+        },
+        "is_champion": false
+      },
+      {
+        "model": "RandomForest_L1",
+        "level": 1,
+        "val_score": 0.9447,
+        "fit_time": 9.2,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "XGBoost_L1",
+        "level": 1,
+        "val_score": 0.9445,
+        "fit_time": 13.99,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      },
+      {
+        "model": "Kaggle Grandmaster SOTA (Hand-Tuned)",
+        "level": "SOTA",
+        "val_score": 0.938,
+        "fit_time": 45.2,
+        "pred_time_val": 0.12,
+        "weights": {
+          "20_Model_Stack": 1.0
+        },
+        "is_champion": false,
+        "is_sota_baseline": true
+      },
+      {
+        "model": "NeuralNetFastAI_L1",
+        "level": 1,
+        "val_score": 0.712,
+        "fit_time": 0.03,
+        "pred_time_val": 0.012,
+        "weights": null,
+        "is_champion": false
+      }
+    ],
+    "caruana_weights": {
+      "CatBoost_L1": 0.467,
+      "ExtraTrees_L1": 0.467,
+      "LightGBM_L2_Stack": 0.067
+    },
+    "stacking_dag": {
+      "nodes": [
+        {
+          "id": "LightGBM_L1",
+          "label": "LightGBM",
+          "level": 1,
+          "score": 0.9541,
+          "type": "base_learner"
+        },
+        {
+          "id": "CatBoost_L1",
+          "label": "CatBoost",
+          "level": 1,
+          "score": 0.9593,
+          "type": "base_learner"
+        },
+        {
+          "id": "XGBoost_L1",
+          "label": "XGBoost",
+          "level": 1,
+          "score": 0.9445,
+          "type": "base_learner"
+        },
+        {
+          "id": "RandomForest_L1",
+          "label": "RandomForest",
+          "level": 1,
+          "score": 0.9447,
+          "type": "base_learner"
+        },
+        {
+          "id": "ExtraTrees_L1",
+          "label": "ExtraTrees",
+          "level": 1,
+          "score": 0.9584,
+          "type": "base_learner"
+        },
+        {
+          "id": "NeuralNetFastAI_L1",
+          "label": "NeuralNetFastAI",
+          "level": 1,
+          "score": 0.712,
+          "type": "base_learner"
+        },
+        {
+          "id": "LightGBM_L2_Stack",
+          "label": "LightGBM (Level 2 Stack)",
+          "level": 2,
+          "score": 0.9473,
+          "type": "stacker"
+        },
+        {
+          "id": "WeightedEnsemble_L3",
+          "label": "WeightedEnsemble_L3 (Caruana)",
+          "level": 3,
+          "score": 0.9615,
+          "type": "meta_ensemble"
+        }
+      ],
+      "edges": [
+        {
+          "from": "LightGBM_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "CatBoost_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "XGBoost_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "RandomForest_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "ExtraTrees_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "NeuralNetFastAI_L1",
+          "to": "LightGBM_L2_Stack",
+          "label": "OOF Meta-Feature"
+        },
+        {
+          "from": "CatBoost_L1",
+          "to": "WeightedEnsemble_L3",
+          "label": "Weight: 0.467"
+        },
+        {
+          "from": "ExtraTrees_L1",
+          "to": "WeightedEnsemble_L3",
+          "label": "Weight: 0.467"
+        },
+        {
+          "from": "LightGBM_L2_Stack",
+          "to": "WeightedEnsemble_L3",
+          "label": "Weight: 0.067"
+        }
+      ]
+    },
+    "feature_importance": [
+      {
+        "feature": "CaratWeight",
+        "importance": 0.445,
+        "percentage": 44.5
+      },
+      {
+        "feature": "VolumeMm3",
+        "importance": 0.215,
+        "percentage": 21.5
+      },
+      {
+        "feature": "ClarityGrade",
+        "importance": 0.145,
+        "percentage": 14.5
+      },
+      {
+        "feature": "ColorGrade",
+        "importance": 0.105,
+        "percentage": 10.5
+      },
+      {
+        "feature": "CutQualityScore",
+        "importance": 0.055,
+        "percentage": 5.5
+      },
+      {
+        "feature": "CertificationRating",
+        "importance": 0.035,
+        "percentage": 3.5
+      }
+    ],
+    "sample_records": [
+      {
+        "CaratWeight": 0.56,
+        "CutQualityScore": 3,
+        "ColorGrade": 3,
+        "ClarityGrade": 5,
+        "DepthPct": 60.7,
+        "TableWidth": 61.0,
+        "VolumeMm3": 78.3,
+        "CertificationRating": 3,
+        "EstimatedValue": 1410.0
+      },
+      {
+        "CaratWeight": 2.21,
+        "CutQualityScore": 3,
+        "ColorGrade": 3,
+        "ClarityGrade": 6,
+        "DepthPct": 62.6,
+        "TableWidth": 54.6,
+        "VolumeMm3": 347.8,
+        "CertificationRating": 4,
+        "EstimatedValue": 26700.0
+      },
+      {
+        "CaratWeight": 1.11,
+        "CutQualityScore": 5,
+        "ColorGrade": 2,
+        "ClarityGrade": 5,
+        "DepthPct": 63.6,
+        "TableWidth": 54.4,
+        "VolumeMm3": 162.7,
+        "CertificationRating": 2,
+        "EstimatedValue": 5000.0
+      },
+      {
+        "CaratWeight": 0.84,
+        "CutQualityScore": 3,
+        "ColorGrade": 4,
+        "ClarityGrade": 2,
+        "DepthPct": 60.1,
+        "TableWidth": 54.9,
+        "VolumeMm3": 144.2,
+        "CertificationRating": 2,
+        "EstimatedValue": 2050.0
+      },
+      {
+        "CaratWeight": 0.36,
+        "CutQualityScore": 5,
+        "ColorGrade": 4,
+        "ClarityGrade": 3,
+        "DepthPct": 64.2,
+        "TableWidth": 57.8,
+        "VolumeMm3": 50.6,
+        "CertificationRating": 4,
+        "EstimatedValue": 640.0
+      },
+      {
+        "CaratWeight": 0.36,
+        "CutQualityScore": 2,
+        "ColorGrade": 6,
+        "ClarityGrade": 3,
+        "DepthPct": 61.6,
+        "TableWidth": 51.3,
+        "VolumeMm3": 30.0,
+        "CertificationRating": 1,
+        "EstimatedValue": 430.0
+      }
+    ]
+  }
+}

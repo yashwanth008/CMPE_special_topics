@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Science & Machine Learning Visual Mastery Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070913;
+      --card: #0d1124;
+      --border: rgba(255,255,255,0.08);
+      --indigo: #6366f1;
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; padding: 2rem; background-image: radial-gradient(at 0% 0%, rgba(99,102,241,0.12) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(6,182,212,0.1) 0px, transparent 50%); }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+    .brand { font-size: 1.4rem; font-weight: 800; background: linear-gradient(to right, #fff, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .project-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: transform 0.2s, border-color 0.2s; }
+    .project-card:hover { transform: translateY(-3px); border-color: var(--indigo); }
+    .tag { display: inline-block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 9999px; background: rgba(99,102,241,0.15); color: #818cf8; margin-bottom: 0.5rem; }
+    h3 { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 0.35rem; }
+    p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-decoration: none; background: linear-gradient(135deg, var(--indigo), var(--cyan)); color: #fff; }
+    .code-box { background: #000; border: 1px solid var(--border); padding: 1rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--emerald); overflow-x: auto; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">⚡ Data Science & ML Mastery Hub</div>
+      <span class="tag" style="background: rgba(16,185,129,0.15); color: #34d399;">8 Production Repositories • GitHub Pages Ready</span>
+    </header>
+
+    <div class="hero">
+      <span class="tag">Open-Source Machine Learning Curriculum</span>
+      <h2 style="font-size: 1.75rem; font-weight: 800; margin: 0.4rem 0;">Foundational Data Science & ML Interactive Visual Textbook</h2>
+      <p style="font-size: 0.9rem; max-width: 800px; color: var(--muted);">
+        A comprehensive collection of 8 enterprise-grade data science platforms, algorithms, and interactive textbooks covering probabilistic classification, confusion matrices, differential optimization, backpropagation mechanics, AutoGluon AutoML, anomaly intelligence, market basket association, customer clustering, and transformer LLMs.
+      </p>
+    </div>
+
+    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem;">🚀 Interactive Projects & Web Dashboards</h2>
+    <div class="grid">
+      <div class="project-card">
+        <span class="tag">Project 08</span>
+        <h3>Visual Foundations Textbook</h3>
+        <p>Naive-Bayes, Model Evaluation, Calculus Gradients, and The Chain Rule with live simulators and mastery quizzes.</p>
+        <a href="#module-content" class="btn">Explore Modules</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 07</span>
+        <h3>AutoGluon AutoML Platform</h3>
+        <p>3-Level Stacking DAG, Caruana Greedy Selection, and AutoResearch Hill-Climbing (+5.9% ROC-AUC).</p>
+        <a href="http://localhost:5180" class="btn">Launch Platform</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 06</span>
+        <h3>Anomaly & Threat Intelligence</h3>
+        <p>Isolation Forest, Autoencoder Bottleneck, LOF, and 2D Latent PCA Manifold with sub-millisecond scoring.</p>
+        <a href="http://localhost:5179" class="btn">Launch Platform</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 05</span>
+        <h3>Data Science Skills Lab</h3>
+        <p>46 production agent skills across Titanic, Ames Housing, Credit Fraud, SaaS Cohorts, and Data Quality.</p>
+        <a href="http://localhost:5178" class="btn">Launch Platform</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 04</span>
+        <h3>Market Basket Association</h3>
+        <p>Apriori, FP-Growth Prefix Tree, 2D Co-Occurrence Graphs, and Cross-Sell Revenue Simulators.</p>
+        <a href="http://localhost:5177" class="btn">Launch Platform</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 03</span>
+        <h3>Customer Segmentation</h3>
+        <p>K-Means++, DBSCAN, Hierarchical Clustering, Silhouette Radar, and Dynamic Recalibration Studio.</p>
+        <a href="http://localhost:5176" class="btn">Launch Platform</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 02</span>
+        <h3>NanoLlama Transformer LLM</h3>
+        <p>3-Layer RoPE, SwiGLU, Multi-Query Attention KV-Cache, and Interactive Tokenizer Workbench.</p>
+        <a href="http://localhost:5175" class="btn">Launch Platform</a>
+      </div>
+
+      <div class="project-card">
+        <span class="tag">Project 01</span>
+        <h3>NYC Taxi Fare Estimator</h3>
+        <p>Spatial-Temporal GPS XGBoost Regressor (RMSLE 0.1531) with interactive map fare simulator.</p>
+        <a href="http://localhost:5174" class="btn">Launch Platform</a>
+      </div>
+    </div>
+
+    <div class="hero" id="module-content">
+      <span class="tag" style="background: rgba(6,182,212,0.15); color: #22d3ee;">Quick Reference Code</span>
+      <h3 style="margin-top: 0.4rem;">Vectorized Backpropagation in 4 Lines</h3>
+      <p>The mathematical heart of modern deep learning executed in pure vectorized NumPy:</p>
+      <div class="code-box">
+# Forward Pass cached: x (input), z = W @ x + b, a = phi(z)
+delta = grad_from_above * phi_prime(z)   # elementwise: dL/dz for this layer
+grad_W = delta @ x.T                    # gradient for weight matrix
+grad_b = delta                          # gradient for bias vector
+grad_to_below = W.T @ delta             # message routed to previous layer
+      </div>
+    </div>
+  </div>
+</body>
+</html>

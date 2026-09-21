@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.minicoder/
+.pytest_cache/
+demo/workspace/
+*.jsonl

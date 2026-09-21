@@ -1,0 +1,9 @@
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.chrome-profile*
+.env
+.DS_Store
+.run/
+catboost_info/

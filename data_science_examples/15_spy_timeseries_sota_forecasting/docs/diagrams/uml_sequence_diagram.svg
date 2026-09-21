@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 560" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0f1d"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="950" height="560" rx="16" fill="url(#bgGrad3)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="30" y="42" fill="#f8fafc" font-family="Inter, sans-serif" font-size="20" font-weight="700">UML Sequence Diagram: Multi-Horizon Inference &amp; Trade Execution</text>
+  <text x="30" y="65" fill="#94a3b8" font-family="Inter, sans-serif" font-size="12">End-to-End Execution Flow with Purged Risk Modeling</text>
+
+  <!-- Lifelines -->
+  <g font-family="Inter, sans-serif" font-size="11" font-weight="600" text-anchor="middle">
+    <!-- Actor -->
+    <rect x="50" y="90" width="110" height="30" rx="6" fill="#1e293b" stroke="#06b6d4"/>
+    <text x="105" y="110" fill="#38bdf8">Dashboard UI</text>
+    <line x1="105" y1="120" x2="105" y2="520" stroke="#334155" stroke-dasharray="4,4"/>
+
+    <!-- FastAPI -->
+    <rect x="220" y="90" width="110" height="30" rx="6" fill="#1e293b" stroke="#10b981"/>
+    <text x="275" y="110" fill="#34d399">FastAPI (:8015)</text>
+    <line x1="275" y1="120" x2="275" y2="520" stroke="#334155" stroke-dasharray="4,4"/>
+
+    <!-- FeaturePipeline -->
+    <rect x="390" y="90" width="120" height="30" rx="6" fill="#1e293b" stroke="#818cf8"/>
+    <text x="450" y="110" fill="#a5b4fc">FeaturePipeline</text>
+    <line x1="450" y1="120" x2="450" y2="520" stroke="#334155" stroke-dasharray="4,4"/>
+
+    <!-- TournamentEngine -->
+    <rect x="570" y="90" width="130" height="30" rx="6" fill="#1e293b" stroke="#f59e0b"/>
+    <text x="635" y="110" fill="#fbbf24">TournamentEngine</text>
+    <line x1="635" y1="120" x2="635" y2="520" stroke="#334155" stroke-dasharray="4,4"/>
+
+    <!-- BacktestingEngine -->
+    <rect x="760" y="90" width="130" height="30" rx="6" fill="#1e293b" stroke="#ec4899"/>
+    <text x="825" y="110" fill="#f472b6">BacktestEngine</text>
+    <line x1="825" y1="120" x2="825" y2="520" stroke="#334155" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- Sequence Messages -->
+  <g font-family="JetBrains Mono, monospace" font-size="10">
+    <!-- 1. POST Request -->
+    <line x1="105" y1="150" x2="275" y2="150" stroke="#38bdf8" stroke-width="1.5"/>
+    <polygon points="270,147 275,150 270,153" fill="#38bdf8"/>
+    <text x="190" y="142" fill="#38bdf8" text-anchor="middle">1. POST /api/forecast/predict {horizon: 5d}</text>
+
+    <!-- 2. Feature Pipeline -->
+    <line x1="275" y1="190" x2="450" y2="190" stroke="#a5b4fc" stroke-width="1.5"/>
+    <polygon points="445,187 450,190 445,193" fill="#a5b4fc"/>
+    <text x="362" y="182" fill="#a5b4fc" text-anchor="middle">2. compute_indicators(window_t)</text>
+
+    <rect x="445" y="205" width="10" height="35" fill="#818cf8" rx="2"/>
+    <text x="465" y="225" fill="#94a3b8" font-family="Inter, sans-serif">transform_test(X_t) [Fit-on-Train]</text>
+
+    <line x1="450" y1="250" x2="275" y2="250" stroke="#a5b4fc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <polygon points="280,247 275,250 280,253" fill="#a5b4fc"/>
+    <text x="362" y="244" fill="#a5b4fc" text-anchor="middle">3. Scaled Vector X_t</text>
+
+    <!-- 3. Tournament Predict -->
+    <line x1="275" y1="290" x2="635" y2="290" stroke="#fbbf24" stroke-width="1.5"/>
+    <polygon points="630,287 635,290 630,293" fill="#fbbf24"/>
+    <text x="455" y="282" fill="#fbbf24" text-anchor="middle">4. predict_multi_horizon(X_t, Price_t)</text>
+
+    <!-- Internal Dispatch -->
+    <rect x="630" y="305" width="10" height="60" fill="#f59e0b" rx="2"/>
+    <text x="650" y="322" fill="#94a3b8" font-family="Inter, sans-serif">• Chronos-T5 Quantile Decoder</text>
+    <text x="650" y="338" fill="#94a3b8" font-family="Inter, sans-serif">• Stacking DAG Meta Projection</text>
+    <text x="650" y="354" fill="#34d399" font-family="Inter, sans-serif">• Caruana Convex Weighting</text>
+
+    <line x1="635" y1="380" x2="275" y2="380" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <polygon points="280,377 275,380 280,383" fill="#fbbf24"/>
+    <text x="455" y="374" fill="#fbbf24" text-anchor="middle">5. Return Bounds (P10, P50, P90)</text>
+
+    <!-- 4. Risk & Backtest -->
+    <line x1="275" y1="420" x2="825" y2="420" stroke="#f472b6" stroke-width="1.5"/>
+    <polygon points="820,417 825,420 820,423" fill="#f472b6"/>
+    <text x="550" y="412" fill="#f472b6" text-anchor="middle">6. evaluate_risk_envelope(P10..P90, ATR)</text>
+
+    <line x1="825" y1="450" x2="275" y2="450" stroke="#f472b6" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <polygon points="280,447 275,450 280,453" fill="#f472b6"/>
+    <text x="550" y="444" fill="#f472b6" text-anchor="middle">7. Position Size, Stop-Loss, Expected Sharpe</text>
+
+    <!-- 5. Client Response -->
+    <line x1="275" y1="490" x2="105" y2="490" stroke="#34d399" stroke-width="1.5"/>
+    <polygon points="110,487 105,490 110,493" fill="#34d399"/>
+    <text x="190" y="482" fill="#34d399" text-anchor="middle">8. 200 OK {P10..P90, Signal, Metrics}</text>
+  </g>
+</svg>

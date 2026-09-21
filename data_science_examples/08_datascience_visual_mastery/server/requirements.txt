@@ -1,0 +1,18 @@
+# Data Science Visual Mastery Platform - backend dependencies
+# Verified working on system Python 3.14 (no special venv needed for this project).
+#
+# Install with:
+#   cd 08_datascience_visual_mastery/server
+#   python3 -m pip install -r requirements.txt
+#   python3 -m uvicorn main:app --host 127.0.0.1 --port 8008
+#
+# All interactive simulators (simulator_engine.py) are pure NumPy math - no
+# scikit-learn/pandas/torch dependency required for this project.
+
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+pydantic==2.13.5
+numpy==2.4.2
+
+# Test-only (needed by starlette's TestClient, used in server/test_api.py)
+httpx==0.28.1

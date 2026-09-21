@@ -1,0 +1,226 @@
+{
+  "quizzes": {
+    "naive_bayes": [
+      {
+        "id": "nb_q1",
+        "question": "What is the primary 'naive' assumption made by the Naive-Bayes classifier?",
+        "options": [
+          "All features follow a Gaussian normal distribution",
+          "Features are conditionally independent given the class label",
+          "The prior probabilities of all classes are exactly equal",
+          "The training dataset contains no missing or corrupted values"
+        ],
+        "correct_index": 1,
+        "explanation": "Naive-Bayes assumes that features occur conditionally independently given the class label: P(x_1, ..., x_n | c) = \\prod P(x_i | c). While language features correlate, this enables linear-time counting."
+      },
+      {
+        "id": "nb_q2",
+        "question": "Why does an uncalibrated Naive-Bayes model frequently output extreme probabilities near 0.999 or 0.001?",
+        "options": [
+          "Floating-point roundoff errors during matrix inversion",
+          "Correlated words are double-counted as independent evidence, artificially inflating the posterior margin",
+          "The prior probability dominates all likelihood terms",
+          "Laplace smoothing forces extreme scaling on small counts"
+        ],
+        "correct_index": 1,
+        "explanation": "Because words like 'free' and 'prize' naturally co-occur in spam, treating them as independent evidence multiplies their likelihoods, multiplying the winning score margin by the correlation factor."
+      },
+      {
+        "id": "nb_q3",
+        "question": "What is the purpose of Laplace (add-one) smoothing?",
+        "options": [
+          "To accelerate gradient descent convergence",
+          "To prevent unseen words from producing a 0.0 likelihood that zeroes out the entire class score",
+          "To normalize output probabilities to sum to 1.0",
+          "To regularize L2 weight penalties"
+        ],
+        "correct_index": 1,
+        "explanation": "If a word never appeared in a class during training, count=0 yields P(w|c)=0, which would zero the entire multiplicative product. Laplace smoothing adds 1 to numerator and V to denominator."
+      },
+      {
+        "id": "nb_q4",
+        "question": "Why do production implementations of Naive-Bayes perform classification in log-space?",
+        "options": [
+          "To compute non-linear decision boundaries",
+          "To prevent floating-point underflow when multiplying dozens of small probabilities",
+          "To convert classification into a regression problem",
+          "To make the algorithm differentiable for backpropagation"
+        ],
+        "correct_index": 1,
+        "explanation": "Multiplying many probabilities < 1.0 quickly underflows 64-bit float precision to 0.0. In log-space, product becomes sum of logs: log P(c) + \\sum log P(x_i|c)."
+      }
+    ],
+    "evaluation_metrics": [
+      {
+        "id": "eval_q1",
+        "question": "Why is accuracy a misleading metric for imbalanced classification tasks (e.g., 99% negative, 1% positive)?",
+        "options": [
+          "Accuracy requires calculating square roots which causes precision loss",
+          "A naive model predicting only the majority class scores 99% accuracy while detecting 0% of minority events",
+          "Accuracy is not defined when False Positives exist",
+          "Accuracy only works for regression problems"
+        ],
+        "correct_index": 1,
+        "explanation": "On a dataset with 99% negative cases, an un-trained 'always negative' dummy model achieves 99% accuracy but has 0% recall on the critical positive class."
+      },
+      {
+        "id": "eval_q2",
+        "question": "In a medical diagnostic system for malignant tumors, which error is far more dangerous, and which metric should be prioritized?",
+        "options": [
+          "False Positive (false alarm); prioritize Precision",
+          "False Negative (missed tumor); prioritize Recall",
+          "True Negative; prioritize Specificity",
+          "Both are equal; prioritize Accuracy"
+        ],
+        "correct_index": 1,
+        "explanation": "A False Negative sends a cancer patient home untreated (fatal), whereas a False Positive triggers an inexpensive confirmatory test. Thus, high Recall (Sensitivity) is paramount."
+      },
+      {
+        "id": "eval_q3",
+        "question": "How does sliding the decision threshold T from 0.5 to 0.8 affect Precision and Recall?",
+        "options": [
+          "Both Precision and Recall increase",
+          "Precision increases (fewer false alarms), but Recall decreases (more missed positives)",
+          "Recall increases, Precision decreases",
+          "Neither metric changes because model parameters are fixed"
+        ],
+        "correct_index": 1,
+        "explanation": "A higher threshold requires the model to be more certain before predicting positive. This reduces false alarms (raising Precision) but misses marginal true cases (lowering Recall)."
+      },
+      {
+        "id": "eval_q4",
+        "question": "Why is the F1 Score defined as the Harmonic Mean rather than the simple Arithmetic Mean of Precision and Recall?",
+        "options": [
+          "Harmonic mean is computationally faster to calculate",
+          "Harmonic mean heavily punishes extreme imbalance between Precision and Recall",
+          "Arithmetic mean cannot handle numbers between 0 and 1",
+          "Harmonic mean converts the score into monetary units"
+        ],
+        "correct_index": 1,
+        "explanation": "If Recall=1.0 and Precision=0.1, the arithmetic mean is 0.55, but the harmonic mean (F1) is ~0.18, accurately reflecting the pathological imbalance."
+      }
+    ],
+    "calculus_gradients": [
+      {
+        "id": "calc_q1",
+        "question": "Geometrically, what does the gradient vector \\nabla f(x) represent at a point?",
+        "options": [
+          "The direction of steepest descent and the area under the curve",
+          "The direction of steepest ascent, with its Euclidean norm measuring the steepness of the climb",
+          "The tangent line parallel to the coordinate axes",
+          "The global minimum coordinates of the function"
+        ],
+        "correct_index": 1,
+        "explanation": "The gradient vector stacks all partial derivatives. By the Cauchy-Schwarz inequality, \\nabla f points in the exact direction along which the function increases fastest."
+      },
+      {
+        "id": "calc_q2",
+        "question": "Why does gradient descent update parameters with a minus sign: \\theta \\leftarrow \\theta - \\eta \\nabla L(\\theta)?",
+        "options": [
+          "Because negative numbers are processed faster in GPU registers",
+          "Because the gradient points steepest uphill, so stepping in the negative gradient direction achieves steepest descent",
+          "To invert the matrix dimensions",
+          "Because loss functions must always evaluate to negative values"
+        ],
+        "correct_index": 1,
+        "explanation": "Since \\nabla L points in the direction of steepest loss increase (uphill), negating it points in the direction of steepest loss reduction (downhill)."
+      },
+      {
+        "id": "calc_q3",
+        "question": "What happens during gradient descent if the learning rate \\eta is set too high?",
+        "options": [
+          "The model converges to the global minimum in fewer steps",
+          "The updates overshoot the valley floor, causing oscillation or explosive divergence",
+          "The gradients vanish to zero instantly",
+          "The loss function becomes non-convex"
+        ],
+        "correct_index": 1,
+        "explanation": "The gradient only provides the local slope at the current point. A large step \\eta overshoots the minimum and lands higher on the opposite wall, leading to loss explosion."
+      },
+      {
+        "id": "calc_q4",
+        "question": "At a differentiable function's local minimum, what is the value of the gradient \\nabla f(\\theta^*)?",
+        "options": [
+          "\\nabla f(\\theta^*) = [1.0, 1.0, ...]",
+          "\\nabla f(\\theta^*) = \\mathbf{0} (all partial derivatives vanish to zero)",
+          "\\nabla f(\\theta^*) = -\\infty",
+          "\\nabla f(\\theta^*) = \\eta"
+        ],
+        "correct_index": 1,
+        "explanation": "At the bottom of the bowl (the stationary point / optimum), the tangent slope is completely flat, meaning all partial derivatives vanish to zero."
+      }
+    ],
+    "backprop_chainrule": [
+      {
+        "id": "bp_q1",
+        "question": "What fundamental calculus rule enables backpropagation to compute gradients through deeply composed neural layers?",
+        "options": [
+          "L'Hôpital's Rule",
+          "The Chain Rule",
+          "Taylor Series Expansion",
+          "The Fundamental Theorem of Arithmetic"
+        ],
+        "correct_index": 1,
+        "explanation": "The Chain Rule decomposes the global derivative of a composite function into the product of its local derivatives along the computational graph: dL/dw = (dL/dy)*(dy/dh)*(dh/dw)."
+      },
+      {
+        "id": "bp_q2",
+        "question": "When a single neuron's output branches to feed multiple downstream neurons, how are the returning gradients combined?",
+        "options": [
+          "Take the maximum gradient among all paths",
+          "Sum the gradients returning from all downstream branches (Multivariable Chain Rule)",
+          "Multiply the gradients together",
+          "Take the average of the incoming signals"
+        ],
+        "correct_index": 1,
+        "explanation": "Because a change in the node perturbs all downstream paths simultaneously, the multivariable chain rule dictates that the total sensitivity is the sum of path gradients."
+      },
+      {
+        "id": "bp_q3",
+        "question": "Why is backpropagation so computationally efficient (requiring only 2 network passes per batch)?",
+        "options": [
+          "It ignores all non-linear activation functions",
+          "The forward pass caches intermediate activations, allowing a single backward sweep to reuse upstream deltas for all incoming weights",
+          "It uses random sampling instead of true calculus",
+          "It trains one layer per epoch"
+        ],
+        "correct_index": 1,
+        "explanation": "Because upstream error signals \\delta are shared across all weights feeding into a neuron, backpropagation computes each node's delta once in a single reverse sweep (costing O(N) rather than O(N^2))."
+      },
+      {
+        "id": "bp_q4",
+        "question": "What causes the 'vanishing gradient' problem when using deep stacks of Sigmoid activation functions?",
+        "options": [
+          "The learning rate \\eta decays too rapidly",
+          "The maximum derivative of Sigmoid is 0.25, so multiplying many layers causes the backward gradient to shrink exponentially toward zero",
+          "Matrix multiplication produces negative eigenvalues",
+          "The bias terms become infinite"
+        ],
+        "correct_index": 1,
+        "explanation": "Because d\\sigma/dz = \\sigma(1-\\sigma) <= 0.25, chaining 10 layers multiplies by at least (0.25)^10 \\approx 10^-6, eliminating learning signals in early layers. ReLU solves this with derivative = 1."
+      }
+    ]
+  },
+  "interview_flashcards": [
+    {
+      "category": "Probabilistic Machine Learning",
+      "question": "Why does Naive-Bayes perform well on text classification despite its false independence assumption?",
+      "answer": "Classification only requires the correct class to have the highest posterior score (argmax), not that the probability itself is accurately calibrated. Correlated features inflate the margin in the correct direction without altering the relative ranking."
+    },
+    {
+      "category": "Classification & Evaluation",
+      "question": "Explain the difference between Type I and Type II errors in terms of Precision and Recall.",
+      "answer": "Type I error is a False Positive (false alarm), controlled by Precision (TP / (TP + FP)). Type II error is a False Negative (missed true positive), controlled by Recall (TP / (TP + FN))."
+    },
+    {
+      "category": "Mathematical Optimization",
+      "question": "Why does the gradient \\nabla f point in the direction of steepest ascent?",
+      "answer": "The directional derivative along unit vector u is D_u f = \\nabla f \\cdot u = ||\\nabla f|| \\cos \\theta. This dot product is strictly maximized when \\theta = 0 (when u points in the identical direction as \\nabla f)."
+    },
+    {
+      "category": "Deep Learning & Neural Networks",
+      "question": "What is the computational complexity difference between numerical differentiation and Backpropagation?",
+      "answer": "Numerical finite differences require N+1 full forward passes (where N is the number of parameters). Backpropagation computes all N gradients in a single backward pass, costing roughly the same as 1 forward pass."
+    }
+  ]
+}

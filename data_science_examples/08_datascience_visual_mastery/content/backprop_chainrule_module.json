@@ -1,0 +1,47 @@
+{
+  "id": "backprop_chainrule",
+  "title": "The Chain Rule & Backpropagation Mechanics",
+  "subtitle": "How a Single Backward Sweep Solves Billions of Nested Derivatives at The Cost of One Forward Pass",
+  "read_time": "15 min read",
+  "key_formula": "\\frac{dL}{dw} = \\frac{dL}{dy} \\cdot \\frac{dy}{dh} \\cdot \\frac{dh}{dw}",
+  "sections": [
+    {
+      "heading": "The Nested Composition Dilemma in Deep Networks",
+      "content": "A deep neural network is a function nested inside a function dozens or hundreds of layers deep: L = L(y(h(w))). Training it requires answering one fundamental question millions of times per second: 'If we nudge one specific weight buried deep in Layer 3, how much does the final scalar loss change?' Differentiating the massive global composite function directly by hand or through naive numerical perturbation would require millions of forward passes per training step, which is computationally impossible."
+    },
+    {
+      "heading": "The Chain Rule: Multiplying Local Slopes",
+      "content": "The Chain Rule decomposes the complex global derivative into a simple chain of local sensitivities: dL/dw = (dL/dy) * (dy/dh) * (dh/dw). Consider a 2-link chain with w = 2, h = 3w (local slope dh/dw = 3), y = h^2 (local slope dy/dh = 2h = 12), and loss L = y (local slope dL/dy = 1). Multiplying the three local slopes yields dL/dw = 1 * 12 * 3 = 36. An infinitesimal perturbation dw = 0.001 increases loss by exactly 0.036 (rate 36:1). Local slopes, multiplied along the path, give the true global sensitivity."
+    },
+    {
+      "heading": "The Multivariable Fan-Out Rule: Summing Branching Gradients",
+      "content": "Real neural networks are directed acyclic graphs rather than simple linear chains. When the output of a single neuron u fans out to feed multiple downstream neurons (e.g., path p = 3u and path q = u^2 into loss L = p + q), a small perturbation in u affects both paths simultaneously. Under the multivariable chain rule, the total gradient accumulated at u is the sum of the gradients returning along each path: dL/du = (dL/dp)*(dp/du) + (dL/dq)*(dq/du) = 1*3 + 1*4 = 7. In backpropagation, deltas arriving from all downstream nodes add together before propagating backward."
+    },
+    {
+      "heading": "The Single-Neuron Forward and Backward Pass",
+      "content": "A standard neuron performs pre-activation z = w*x + b, followed by non-linear activation a = \\sigma(z). During backpropagation, the upstream gradient dL/da arrives from the layer ahead. The local activation derivative da/dz = \\sigma(z)*(1 - \\sigma(z)) and local weight derivative dz/dw = x combine to compute the weight gradient: dL/dw = (dL/da) * (da/dz) * (dz/dw). Every weight gradient is simply the product of one upstream signal, one activation derivative, and one cached input."
+    },
+    {
+      "heading": "The 4-Line Vectorized Matrix Formulation",
+      "content": "In matrix notation across full layers with weight matrix W and bias b, backpropagation reduces to four vectorized operations: (1) delta = grad_from_above * phi_prime(z); (2) grad_W = delta @ x.T; (3) grad_b = delta; (4) grad_to_below = W.T @ delta. The forward pass utilizes W, while the backward pass utilizes W transposed (W^T), routing the error signal back through the identical network architecture."
+    },
+    {
+      "heading": "Computational Complexity: Why 2 Sweeps Train Billion-Parameter Models",
+      "content": "Because upstream gradients dL/da and deltas \\delta are shared across all incoming weights to a neuron, they are computed once and cached. A single forward sweep computes and caches intermediate activations (x, z, a); a single backward sweep computes all weight and bias gradients across the entire network in O(N) time. The backward sweep costs roughly the same as one forward pass, making the training of hundred-billion-parameter large language models tractable in practice."
+    },
+    {
+      "heading": "The Vanishing & Exploding Gradient Challenge",
+      "content": "Because backpropagation multiplies local slopes along deep chains, if many local derivatives are less than 1.0, the cumulative product shrinks exponentially toward zero in early layers (the vanishing gradient problem). For example, the standard sigmoid derivative maxes out at 0.25; chaining 10 sigmoid layers attenuates the gradient by (0.25)^10 \\approx 10^{-6}. Modern architectures mitigate this using ReLU activations (local derivative = 1 for z > 0), residual skip connections, and layer normalization."
+    }
+  ],
+  "chain_example": {
+    "weight_w": 2.0,
+    "hidden_h": 6.0,
+    "output_y": 36.0,
+    "loss_L": 36.0,
+    "dh_dw": 3.0,
+    "dy_dh": 12.0,
+    "dL_dy": 1.0,
+    "global_dL_dw": 36.0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "naive_bayes",
+  "title": "Probabilistic Classification & Bayesian Inference",
+  "subtitle": "How a Single Bold Assumption Unlocks Document Classification Across Millions of Words",
+  "read_time": "10 min read",
+  "key_formula": "P(c | x_1 ... x_n) \\propto P(c) \\prod_{i=1}^n P(x_i | c)",
+  "sections": [
+    {
+      "heading": "The Core Dilemma: The Combinatorial Explosion of Language",
+      "content": "Imagine designing an automated system to classify incoming communications as either malicious spam or legitimate mail. If an email consists of 20 words drawn from a modest 10,000-word lexicon, the number of possible word combinations exceeds the number of atoms in the human body. Estimating the true joint likelihood P(x_1, x_2, ..., x_n | c) directly from training frequencies is impossible because almost every sentence you will ever encounter has never been seen before in human history. To overcome this computational brick wall, we require a principled mathematical approximation."
+    },
+    {
+      "heading": "The Conditional Independence Factorization",
+      "content": "The defining insight of the Naive-Bayes architecture is to assume that, given the class label, every feature occurs completely independently of every other feature. Formally, knowing that the word 'free' appeared provides zero additional information about whether the word 'prize' appeared once the class is fixed as 'spam'. Under this conditional independence premise, the intractable joint likelihood factors into a simple product of single-word frequencies: P(x_1, ..., x_n | c) = P(x_1 | c) * P(x_2 | c) * ... * P(x_n | c). We trade one impossible number for n easily countable empirical frequencies."
+    },
+    {
+      "heading": "The Decision Rule & The Napkin Arithmetic",
+      "content": "Combining the naive likelihood factorization with Bayes' Theorem and omitting the class-invariant evidence denominator P(evidence), the classification rule reduces to: predict = argmax_c [ P(c) * \\prod_i P(x_i | c) ]. Consider a tiny corpus where the prior probability P(spam) = 0.4 and P(ham) = 0.6. Suppose an incoming message contains three words: 'free', 'money', 'lunch'. With spam likelihoods (0.7, 0.5, 0.1), the unnormalized spam score is 0.4 * 0.7 * 0.5 * 0.1 = 0.014. With ham likelihoods (0.1, 0.2, 0.4), the ham score is 0.6 * 0.1 * 0.2 * 0.4 = 0.0048. Since 0.014 > 0.0048, the classifier chooses spam, yielding a normalized posterior belief of 74.5%."
+    },
+    {
+      "heading": "Production Engineering Fix 1: The Zero-Probability Trap & Laplace Smoothing",
+      "content": "If a single word (e.g., 'blockchain') never appeared in ham emails during training, its empirical likelihood P('blockchain' | ham) equals 0.0. Because the decision rule multiplies all probabilities together, that single zero immediately vetoes the entire ham class, forcing the score to 0 regardless of all other words. The solution is Laplace (add-one) smoothing: P(w | c) = (count(w, c) + 1) / (total_words_in_c + V), where V is the total vocabulary size. This guarantees that no probability ever hits zero, allowing rare words to gently modulate scores without acting as absolute vetoes."
+    },
+    {
+      "heading": "Production Engineering Fix 2: Log-Space Computation Against Underflow",
+      "content": "Multiplying dozens of probabilities between 0 and 1 causes the cumulative product to rapidly underflow standard 64-bit floating-point precision, collapsing silently to 0.0. Because the logarithm is a strictly monotonically increasing function, maximizing the product of probabilities is mathematically identical to maximizing the sum of their logarithms: predict = argmax_c [ log P(c) + \\sum_i log P(x_i | c) ]. In log space, products of tiny numbers transform into sums of stable negative floats."
+    },
+    {
+      "heading": "Why a 'False' Assumption Triumphs in Practice",
+      "content": "The independence assumption is factually untrue in human language—words like 'credit' and 'card' correlate heavily. This correlation causes Naive-Bayes to double-count evidence, pushing output probabilities toward extreme uncalibrated extremes (0.999 or 0.001). However, optimal classification does not require calibrated probabilities; it only requires the correct class to achieve the highest rank. Because correlated signals generally push the winning score in the correct direction, Naive-Bayes serves as an ultra-fast, robust, sub-millisecond baseline that is notoriously difficult to beat."
+    }
+  ],
+  "napkin_example": {
+    "prior_spam": 0.4,
+    "prior_ham": 0.6,
+    "words": [
+      { "word": "free", "p_spam": 0.7, "p_ham": 0.1 },
+      { "word": "money", "p_spam": 0.5, "p_ham": 0.2 },
+      { "word": "lunch", "p_spam": 0.1, "p_ham": 0.4 }
+    ],
+    "spam_score": 0.014,
+    "ham_score": 0.0048,
+    "posterior_spam_pct": 74.5
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "evaluation_metrics",
+  "title": "Model Evaluation, Confusion Matrices & Threshold Trade-offs",
+  "subtitle": "Why 99% Accuracy Lies, How to Choose Precision vs. Recall, and The Power of the F1 Harmonic Mean",
+  "read_time": "12 min read",
+  "key_formula": "F_1 = 2 \\cdot \\frac{\\text{Precision} \\cdot \\text{Recall}}{\\text{Precision} + \\text{Recall}}",
+  "sections": [
+    {
+      "heading": "The 99% Accuracy Trap in Imbalanced Domains",
+      "content": "Consider a credit card fraud detection system evaluating 10,000 transactions where only 100 transactions (1%) are genuinely fraudulent. A naive, 'do-nothing' model that unconditionally predicts 'legitimate' for every single transaction achieves an impressive 99% accuracy on paper while detecting exactly zero fraudulent incidents. Whenever target classes are imbalanced, single aggregate accuracy numbers become dangerously misleading by rewarding majority-class memorization."
+    },
+    {
+      "heading": "The 2x2 Confusion Matrix: Accounting for Every Outcome",
+      "content": "To diagnose model behavior rigorously, predictions are mapped into a 2x2 contingency matrix: True Positives (TP: correctly flagged hits), True Negatives (TN: correctly cleared negatives), False Positives (FP / Type I Error: false alarms), and False Negatives (FN / Type II Error: missed critical events). Every test observation lands in exactly one cell, making errors fully transparent."
+    },
+    {
+      "heading": "Precision vs. Recall: The Two Fundamental Ways of Being Wrong",
+      "content": "Precision answers: 'When the model sounds the alarm, what fraction was actually positive?' Precision = TP / (TP + FP). It is the critical metric when false alarms are expensive (e.g., spam filters dropping legitimate job offers or false financial fraud card freezes). Recall (Sensitivity / True Positive Rate) answers: 'Of all truly positive cases in reality, what fraction did the model catch?' Recall = TP / (TP + FN). It is vital when misses are catastrophic (e.g., malignant tumor detection or perimeter security breaches)."
+    },
+    {
+      "heading": "The Sliding Decision Threshold & The Precision-Recall Trade-off",
+      "content": "Classifiers output a continuous probability score p between 0.0 and 1.0. The standard decision threshold is T = 0.5. Raising T to 0.9 makes the model conservative: precision increases (fewer false alarms) but recall plummets (more misses). Lowering T to 0.2 makes the model aggressive: recall reaches near 100% at the expense of precision (swamped by false alarms). Precision and recall cannot be evaluated in a vacuum without specifying the decision threshold."
+    },
+    {
+      "heading": "The F1 Score: Why Harmonic Mean Punishes Asymmetry",
+      "content": "When a single unified metric is required to rank models on imbalanced data, the F1 Score computes the harmonic mean of Precision and Recall: F_1 = 2 * (Precision * Recall) / (Precision + Recall). Unlike the arithmetic mean (which would give a misleading 55% score to a model with 100% recall and 10% precision), the harmonic mean forces both metrics to be simultaneously high, severely penalizing extreme imbalances."
+    },
+    {
+      "heading": "The Business Decision Framework: Cost-Matrix Optimization",
+      "content": "Evaluation metrics are business decisions, not purely mathematical ones. When the cost of a false negative vastly exceeds the cost of a false positive (C_FN >> C_FP), optimize for high Recall and adjust the decision threshold downward. When false alarms incur substantial operational overhead or user friction (C_FP >> C_FN), optimize for high Precision. Always inspect the full confusion matrix before deploying to production."
+    }
+  ],
+  "matrix_example": {
+    "total_samples": 100,
+    "actual_positives": 10,
+    "actual_negatives": 90,
+    "tp": 8,
+    "fn": 2,
+    "fp": 5,
+    "tn": 85,
+    "accuracy_pct": 93.0,
+    "precision_pct": 61.5,
+    "recall_pct": 80.0,
+    "f1_pct": 69.6
+  }
+}

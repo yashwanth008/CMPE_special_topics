@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 560" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad5" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0f1d"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="950" height="560" rx="16" fill="url(#bgGrad5)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="30" y="42" fill="#f8fafc" font-family="Inter, sans-serif" font-size="20" font-weight="700">UML State Machine Diagram: Quantitative Trading Position Lifecycle</text>
+  <text x="30" y="65" fill="#94a3b8" font-family="Inter, sans-serif" font-size="12">Position Transitions, Stop-Loss / Take-Profit Triggers &amp; Risk Rebalancing</text>
+
+  <!-- States -->
+  <g font-family="Inter, sans-serif" text-anchor="middle">
+    <!-- Start State -->
+    <circle cx="80" cy="270" r="16" fill="#64748b"/>
+    <text x="80" y="305" fill="#94a3b8" font-size="10">Init ($100k)</text>
+
+    <!-- Transition 1 -->
+    <line x1="96" y1="270" x2="160" y2="270" stroke="#38bdf8" stroke-width="2"/>
+
+    <!-- State: CASH -->
+    <rect x="160" y="230" width="160" height="80" rx="10" fill="#0f172a" stroke="#06b6d4" stroke-width="2"/>
+    <rect x="162" y="232" width="156" height="24" rx="8" fill="#06b6d4" fill-opacity="0.2"/>
+    <text x="240" y="249" fill="#38bdf8" font-size="12" font-weight="700">CASH (Neutral)</text>
+    <text x="240" y="275" fill="#cbd5e1" font-size="10">Capital Preserved</text>
+    <text x="240" y="292" fill="#94a3b8" font-size="9">|r_hat| &lt; 0.15%</text>
+
+    <!-- State: LONG -->
+    <rect x="460" y="100" width="200" height="100" rx="10" fill="#06281e" stroke="#10b981" stroke-width="2"/>
+    <rect x="462" y="102" width="196" height="24" rx="8" fill="#10b981" fill-opacity="0.3"/>
+    <text x="560" y="119" fill="#34d399" font-size="12" font-weight="700">LONG POSITION</text>
+    <text x="560" y="145" fill="#cbd5e1" font-size="10">100% SPY Allocation</text>
+    <text x="560" y="162" fill="#94a3b8" font-size="9">Take-Profit: P90 Target</text>
+    <text x="560" y="178" fill="#f87171" font-size="9">Stop-Loss: Entry - 1.5 ATR</text>
+
+    <!-- State: SHORT -->
+    <rect x="460" y="340" width="200" height="100" rx="10" fill="#280f1e" stroke="#f43f5e" stroke-width="2"/>
+    <rect x="462" y="342" width="196" height="24" rx="8" fill="#f43f5e" fill-opacity="0.3"/>
+    <text x="560" y="359" fill="#fb7185" font-size="12" font-weight="700">SHORT POSITION</text>
+    <text x="560" y="385" fill="#cbd5e1" font-size="10">-100% Inverse Allocation</text>
+    <text x="560" y="402" fill="#94a3b8" font-size="9">Take-Profit: P10 Target</text>
+    <text x="560" y="418" fill="#f87171" font-size="9">Stop-Loss: Entry + 1.5 ATR</text>
+
+    <!-- State: RISK REBALANCE -->
+    <rect x="760" y="230" width="160" height="80" rx="10" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+    <rect x="762" y="232" width="156" height="24" rx="8" fill="#f59e0b" fill-opacity="0.2"/>
+    <text x="840" y="249" fill="#fbbf24" font-size="12" font-weight="700">RISK REBALANCE</text>
+    <text x="840" y="275" fill="#cbd5e1" font-size="10">Vol Spike / VIX &gt; 30</text>
+    <text x="840" y="292" fill="#94a3b8" font-size="9">Scale Position to 50%</text>
+
+    <!-- Transition cash to long -->
+    <path d="M 280 230 L 280 150 L 460 150" stroke="#10b981" stroke-width="1.5" fill="none"/>
+    <text x="370" y="142" fill="#34d399" font-size="9">r_hat &gt; +0.15% &amp; Conf &gt; 0.7</text>
+
+    <!-- Transition long to cash -->
+    <path d="M 460 180 L 320 180 L 320 230" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+    <text x="390" y="195" fill="#94a3b8" font-size="9">Hit TP/SL Target</text>
+
+    <!-- Transition cash to short -->
+    <path d="M 280 310 L 280 390 L 460 390" stroke="#f43f5e" stroke-width="1.5" fill="none"/>
+    <text x="370" y="382" fill="#fb7185" font-size="9">r_hat &lt; -0.15% &amp; Conf &gt; 0.7</text>
+
+    <!-- Transition short to cash -->
+    <path d="M 460 420 L 320 420 L 320 310" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+    <text x="390" y="435" fill="#94a3b8" font-size="9">Hit TP/SL Target</text>
+
+    <!-- Direct Reversal Long <-> Short -->
+    <path d="M 560 200 L 560 340" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,4" fill="none"/>
+    <text x="560" y="265" fill="#c084fc" font-size="9">Macro Inversion</text>
+    <text x="560" y="278" fill="#c084fc" font-size="9">(FOMC / VIX Shock)</text>
+
+    <!-- Rebalance transitions -->
+    <path d="M 660 150 L 840 150 L 840 230" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+    <path d="M 660 390 L 840 390 L 840 310" stroke="#f59e0b" stroke-width="1.5" fill="none"/>
+  </g>
+</svg>
