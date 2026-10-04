@@ -1,0 +1,13 @@
+# Bundle patch: inserts the second-brain plugin into the profile composition.
+#
+# `id` is this row's unique handle — `plugin_manager set_plugin` and the Web
+# Plugins page address the entry by it.
+# `name` must match the package name in package.json.
+# `config` is handed to apply(ctx, config).
+- insert:
+    - id: second-brain
+      name: '@local/dsh-second-brain'
+      config:
+        # Omit to use ~/.dsh/second-brain.jsonl
+        # path: /absolute/path/to/second-brain.jsonl
+        maxNoteLength: 4000

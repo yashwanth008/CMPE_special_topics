@@ -1,0 +1,15 @@
+{
+  "name": "@local/dsh-second-brain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Persistent cross-session memory for DeepSeek Harness: save, search, recall and forget notes.",
+  "exports": {
+    ".": "./index.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

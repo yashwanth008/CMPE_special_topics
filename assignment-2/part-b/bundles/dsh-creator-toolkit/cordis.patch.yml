@@ -1,0 +1,87 @@
+# @local/dsh-creator-toolkit — five plugins in one bundle.
+#
+# This is a CONFIGURATION-ONLY bundle: it ships no Host or Client code, only a
+# patch. Every row inserts the already-installed MCP client with a different
+# configuration, which is how DSH turns an external MCP server into a set of
+# native-looking tools. The model sees them as `mcp__<serverName>__<tool>`.
+#
+# Install the whole set with one call:
+#   plugin_manager  action: install_bundle  target: <absolute path to this dir>
+#
+# Each row is independently toggleable afterwards from the Web Plugins page or
+# with `plugin_manager set_plugin`, so a server you do not want costs nothing.
+#
+# NOTE ON SECRETS: `!!js process.env.X` reads a variable from the Harness
+# process at load time. Never paste a token into this file — it lives in the
+# repository, and the Loader exists precisely so it does not have to.
+
+- insert:
+    # ---------------------------------------------------------------- 1
+    # Filesystem access scoped to explicit roots. Gives the agent structured
+    # read/write/move/search tools instead of shelling out to `cat` and `mv`,
+    # and the root list is the boundary it cannot cross.
+    - id: mcp-filesystem
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: filesystem
+        transport: stdio
+        command: npx
+        args:
+          - '-y'
+          - '@modelcontextprotocol/server-filesystem'
+          # Replace with the directories this profile should reach.
+          - !!js process.env.HOME + '/projects'
+        failOnStartupError: false
+
+    # ---------------------------------------------------------------- 2
+    # A knowledge graph the model maintains itself: entities, relations and
+    # observations that persist across sessions. Pairs with second-brain —
+    # this one stores STRUCTURE, second-brain stores prose.
+    - id: mcp-memory
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: memory
+        transport: stdio
+        command: npx
+        args: ['-y', '@modelcontextprotocol/server-memory']
+        failOnStartupError: false
+
+    # ---------------------------------------------------------------- 3
+    # Explicit step-by-step reasoning with revision and branching. Worth
+    # enabling when the profile drives a smaller model that benefits from
+    # being made to decompose a problem before acting.
+    - id: mcp-sequential-thinking
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: thinking
+        transport: stdio
+        command: npx
+        args: ['-y', '@modelcontextprotocol/server-sequential-thinking']
+        failOnStartupError: false
+
+    # ---------------------------------------------------------------- 4
+    # GitHub issues and pull requests as tools. The token is read from the
+    # environment, never stored here.
+    - id: mcp-github
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: github
+        transport: stdio
+        command: npx
+        args: ['-y', '@modelcontextprotocol/server-github']
+        env:
+          GITHUB_PERSONAL_ACCESS_TOKEN: !!js process.env.GITHUB_TOKEN
+        # A missing token should disable the server, not block startup.
+        failOnStartupError: false
+
+    # ---------------------------------------------------------------- 5
+    # URL fetching that returns content converted for a model to read.
+    # Python-based, so it runs through uvx rather than npx.
+    - id: mcp-fetch
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: fetch
+        transport: stdio
+        command: uvx
+        args: ['mcp-server-fetch']
+        failOnStartupError: false

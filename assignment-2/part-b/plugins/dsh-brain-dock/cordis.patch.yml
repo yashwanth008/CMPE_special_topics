@@ -1,0 +1,9 @@
+# Bundle patch for the brain dock.
+#
+# One row is enough: the Client artifact is discovered through the `dsh.client`
+# block in package.json, not through a separate patch entry. `immediately: true`
+# loads it with the page rather than on first use, so the dock is present as
+# soon as the composer renders.
+- insert:
+    - id: brain-dock
+      name: '@local/dsh-brain-dock'

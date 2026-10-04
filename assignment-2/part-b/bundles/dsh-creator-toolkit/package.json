@@ -1,0 +1,12 @@
+{
+  "name": "@local/dsh-creator-toolkit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Configuration-only bundle: connects five MCP servers to this Harness profile in one install.",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

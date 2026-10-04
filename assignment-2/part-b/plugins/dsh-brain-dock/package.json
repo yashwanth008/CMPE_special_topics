@@ -1,0 +1,21 @@
+{
+  "name": "@local/dsh-brain-dock",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A quick-capture dock below the composer that saves to and recalls from the second brain.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-conversation"]
+    }
+  }
+}
