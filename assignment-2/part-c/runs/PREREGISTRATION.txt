@@ -1,0 +1,1 @@
+PRE-REGISTERED: dataset=iris, n=30 seeds, budget=22, alpha=0.05, one-shot, report regardless of outcome

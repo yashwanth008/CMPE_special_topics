@@ -1,0 +1,50 @@
+dataset: iris  X=(150, 4)  classes=3
+train=112 rows   held-out=38 rows (scored once, at the end)
+
+comparing selection rules across 30 seeds (22 experiments each)
+
+  seed 0: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 1: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 2: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 3: gated 0.9231 (gap +0.0444)   greedy 1.0000 (gap -0.0234)
+  seed 4: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 5: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 6: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 7: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 8: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 9: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 10: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 11: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 12: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 13: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 14: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 15: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 16: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 17: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 18: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 19: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 20: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 21: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 22: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 23: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 24: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0503)
+  seed 25: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 26: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 27: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 28: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+  seed 29: gated 0.9231 (gap +0.0444)   greedy 0.9231 (gap +0.0480)
+
+====================================================================
+selection-rule comparison — iris, 30 seeds, 22 experiments each
+====================================================================
+rule                     mean val  mean test   mean gap
+statistical gate           0.9675     0.9231     0.0444
+greedy max                 0.9719     0.9256     0.0463
+--------------------------------------------------------------------
+held-out difference (gate − greedy): -0.0026
+validation inflation avoided:        +0.0019
+same pipeline chosen in 0/30 studies
+====================================================================
+
+paired t-test on the selection gap across seeds: mean difference +0.0019, p=0.4356
+(a positive difference means the greedy rule reported more inflated validation scores than the gated rule)

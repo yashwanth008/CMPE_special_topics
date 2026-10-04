@@ -1,0 +1,50 @@
+dataset: wine  X=(178, 13)  classes=3
+train=133 rows   held-out=45 rows (scored once, at the end)
+
+comparing selection rules across 30 seeds (22 experiments each)
+
+  seed 0: gated 1.0000 (gap -0.0145)   greedy 1.0000 (gap -0.0085)
+  seed 1: gated 0.9722 (gap +0.0153)   greedy 1.0000 (gap -0.0103)
+  seed 2: gated 0.9815 (gap +0.0012)   greedy 0.9722 (gap +0.0161)
+  seed 3: gated 0.9722 (gap +0.0153)   greedy 0.9722 (gap +0.0173)
+  seed 4: gated 0.9722 (gap +0.0195)   greedy 0.9722 (gap +0.0195)   [same pick]
+  seed 5: gated 1.0000 (gap -0.0145)   greedy 1.0000 (gap -0.0083)
+  seed 6: gated 0.9593 (gap +0.0327)   greedy 0.9593 (gap +0.0327)   [same pick]
+  seed 7: gated 0.9722 (gap +0.0175)   greedy 0.9722 (gap +0.0175)   [same pick]
+  seed 8: gated 1.0000 (gap -0.0145)   greedy 0.9444 (gap +0.0473)
+  seed 9: gated 1.0000 (gap -0.0145)   greedy 0.9537 (gap +0.0382)
+  seed 10: gated 1.0000 (gap -0.0145)   greedy 0.9722 (gap +0.0161)
+  seed 11: gated 0.9315 (gap +0.0582)   greedy 1.0000 (gap -0.0103)
+  seed 12: gated 1.0000 (gap -0.0125)   greedy 0.9444 (gap +0.0473)
+  seed 13: gated 1.0000 (gap -0.0125)   greedy 0.9722 (gap +0.0173)
+  seed 14: gated 0.9722 (gap +0.0153)   greedy 0.9722 (gap +0.0173)
+  seed 15: gated 0.9315 (gap +0.0604)   greedy 0.9315 (gap +0.0604)   [same pick]
+  seed 16: gated 1.0000 (gap -0.0145)   greedy 0.9537 (gap +0.0380)
+  seed 17: gated 1.0000 (gap -0.0125)   greedy 0.9259 (gap +0.0648)
+  seed 18: gated 0.9259 (gap +0.0606)   greedy 0.9722 (gap +0.0161)
+  seed 19: gated 0.9037 (gap +0.0860)   greedy 0.9722 (gap +0.0195)
+  seed 20: gated 1.0000 (gap -0.0145)   greedy 0.9722 (gap +0.0197)
+  seed 21: gated 1.0000 (gap -0.0125)   greedy 0.9722 (gap +0.0161)
+  seed 22: gated 1.0000 (gap -0.0105)   greedy 0.9722 (gap +0.0175)
+  seed 23: gated 1.0000 (gap -0.0125)   greedy 0.9722 (gap +0.0161)
+  seed 24: gated 0.9537 (gap +0.0362)   greedy 0.9537 (gap +0.0380)
+  seed 25: gated 1.0000 (gap -0.0105)   greedy 0.9722 (gap +0.0195)
+  seed 26: gated 1.0000 (gap -0.0081)   greedy 1.0000 (gap -0.0081)   [same pick]
+  seed 27: gated 1.0000 (gap -0.0166)   greedy 0.9722 (gap +0.0195)
+  seed 28: gated 1.0000 (gap -0.0125)   greedy 0.9722 (gap +0.0197)
+  seed 29: gated 0.9315 (gap +0.0573)   greedy 0.9315 (gap +0.0573)   [same pick]
+
+====================================================================
+selection-rule comparison — wine, 30 seeds, 22 experiments each
+====================================================================
+rule                     mean val  mean test   mean gap
+statistical gate           0.9877     0.9793     0.0084
+greedy max                 0.9906     0.9685     0.0221
+--------------------------------------------------------------------
+held-out difference (gate − greedy): +0.0109
+validation inflation avoided:        +0.0137
+same pipeline chosen in 6/30 studies
+====================================================================
+
+paired t-test on the selection gap across seeds: mean difference +0.0137, p=0.0370
+(a positive difference means the greedy rule reported more inflated validation scores than the gated rule)
