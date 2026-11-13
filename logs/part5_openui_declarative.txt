@@ -1,0 +1,27 @@
+
+======================================================================
+OPENUI LANG / DECLARATIVE: compact language, streaming parser
+======================================================================
+
+--- step 1: Stream it 30 chars at a time. Note forward refs: root is painted before its children exist.
+  1 statement(s) parsed; root refs ['title', 'kpi', 'chart', 'more']; ready: []
+  2 statement(s) parsed; root refs ['title', 'kpi', 'chart', 'more']; ready: ['title']
+  3 statement(s) parsed; root refs ['title', 'kpi', 'chart', 'more']; ready: ['title', 'kpi']
+  4 statement(s) parsed; root refs ['title', 'kpi', 'chart', 'more']; ready: ['title', 'kpi', 'chart']
+  5 statement(s) parsed; root refs ['title', 'kpi', 'chart', 'more']; ready: ['title', 'kpi', 'chart', 'more']
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  NA   #################### 520
+  EMEA ################ 410
+  APAC ############ 310
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 2: Correction loop: errors name the statement, so the model can fix exactly that line.
+  kpi = Gauge("Revenue", 1.24)                   -> kpi: unknown component 'Gauge'. Allowed: ['BarChart', 'Button', 'Heading', 'HtmlArtifact', 'Metric', 'Stack']
+  kpi = Metric("Revenue", "$1.24M", "+8.2%", "   -> kpi: Metric takes 3 args, got 4
+  kpi = Metric("Revenue" "$1.24M")               -> expected ',', got '"$1.24M"'
+
+--- step 3: Same UI, three formats (APPROXIMATE tokens: regex words+punctuation, not a model tokenizer).
+  OpenUI Lang          224 chars    81 tokens  x1.0
+  json-render JSON     469 chars   223 tokens  x2.8
+  A2UI JSONL           679 chars   303 tokens  x3.7

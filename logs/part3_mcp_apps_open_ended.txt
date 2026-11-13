@@ -1,0 +1,24 @@
+
+======================================================================
+MCP APPS / OPEN-ENDED: generated HTML in a nested sandbox
+======================================================================
+
+--- step 1: Host connects and lists tools (JSON-RPC: initialize, tools/list).
+  show_sales             ui=ui://open/view.html  visibility=['model']
+  show_region_details    ui=None  visibility=['app']
+  the MODEL only sees: ['show_sales']  (app-only tools are hidden)
+
+--- step 2: Model calls show_sales. Host sees resourceUri and fetches the ui:// resource.
+  resource ui://open/view.html: 2530 chars of HTML (mime text/html;profile=mcp-app)
+  structuredContent keys: ['spec']
+  lint of model-generated part: clean
+
+--- step 3: Bridge policy. Requests from the iframe are checked by the HOST, not trusted.
+  app asks ui/initialize                       -> OK
+  app asks tools/call  show_region_details    -> OK
+  app asks tools/call  show_sales             -> REFUSED: host refused: tool not callable by apps
+  app asks tools/call  delete_database        -> REFUSED: host refused: tool not callable by apps
+
+--- step 4: Render the host page in headless Chrome: iframe + live bridge log.
+  screenshot -> out/part3_open_ended.png
+  server-side RPC log: ['initialize', 'tools/list', 'tools/call', 'resources/read', 'tools/call']

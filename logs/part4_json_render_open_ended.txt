@@ -1,0 +1,12 @@
+
+======================================================================
+JSON-RENDER / OPEN-ENDED: one HtmlArtifact element, linted then sandboxed
+======================================================================
+
+--- step 1: friendly model output
+  schema errors: none | lint: clean
+[sandboxed HTML, 549 chars]
+
+--- step 2: hostile model output
+  schema errors: none | lint: ['external <script src>', 'network call', 'storage/cookie access', '<form> (can post data out)', 'external URL']
+  -> not rendered; findings returned to the model

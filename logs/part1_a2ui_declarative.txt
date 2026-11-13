@@ -1,0 +1,39 @@
+
+======================================================================
+A2UI / DECLARATIVE: model describes the surface, app validates and renders
+======================================================================
+
+--- step 1: The system prompt is generated from the catalog.
+You may only use these components:
+- Stack(none) +children: Vertical container.
+- Heading(text:str): A section title.
+- Metric(label:str, value:str, delta:str): One KPI with change.
+- BarChart(data:dict): Bars from {label: number}.
+- Button(label:str, action:str): Sends a NAMED action to the app.
+
+--- step 2: Model attempt 1 uses a component that does not exist (Gauge).
+attempt 1: INVALID -> fed back to model as an error:
+    kpi: unknown component 'Gauge'. Allowed: ['BarChart', 'Button', 'Heading', 'Metric', 'Stack']
+attempt 2: valid
+
+--- step 3: Valid surface streamed as JSONL (note: 3 messages, structure and data apart).
+wire:
+    {"surfaceUpdate": {"surfaceId": "main", "components": [{"id": "page", "component": {"Stack": {"children": {"explicitList": ["title", "kpi", "chart", "more"]}}}}, {"id": "title", "component": {"Heading": {"text": "Q3 sales summary"}}}, {"id": "kpi", "component": {"Metric": {"label": "Revenue", "value": "$1.24M", "delta": "+8.2%"}}}, {"id": "chart", "component": {"BarChart": {"data": {"path": "/regions"}}}}, {"id": "more", "component": {"Button": {"label": "Show EMEA details", "action": "show_region:EMEA"}}}]}}
+    {"dataModelUpdate": {"surfaceId": "main", "contents": {"regions": {"NA": 520, "EMEA": 410, "APAC": 310}}}}
+    {"beginRendering": {"surfaceId": "main", "root": "page"}}
+
+--- step 4: Render the same surface to terminal and HTML.
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  NA   #################### 520
+  EMEA ################ 410
+  APAC ############ 310
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 5: Data-only update: APAC grows. No layout is resent.
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  NA   #################### 520
+  EMEA ################ 410
+  APAC ################## 455
+  <Show EMEA details> -> action 'show_region:EMEA'

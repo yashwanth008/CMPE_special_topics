@@ -1,0 +1,10 @@
+
+======================================================================
+OPENUI LANG / STATIC: one allow-listed component call
+======================================================================
+
+--- step 1: model reply: root = Metric("Q3 revenue", "$1.24M", "+8.2%")
+[ Q3 revenue: $1.24M (+8.2%) ]
+
+--- step 2: model reply: root = Stack([a])
+  REJECTED: static mode only allows {'Metric'}, got {'Stack', 'Heading'}

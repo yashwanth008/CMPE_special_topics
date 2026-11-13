@@ -1,0 +1,24 @@
+
+======================================================================
+A2UI / MIXED: catalog components + one sandboxed custom region
+======================================================================
+
+--- step 1: Messages: same four envelopes, one component is the escape hatch.
+components:
+    [
+      "page -> Stack",
+      "title -> Heading",
+      "kpi -> Metric",
+      "chart -> HtmlArtifact",
+      "more -> Button"
+    ]
+
+--- step 2: Apply, resolve, render. Heading/Metric/Button are native; the chart is sandboxed.
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  [sandboxed HTML, 339 chars]
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 3: Close the loop: a click becomes a NAMED action; the app decides if it is permitted.
+OK      {'type': 'action', 'name': 'show_region', 'arg': 'EMEA'}
+DENIED  action 'export_customer_table' is not allowed

@@ -1,0 +1,14 @@
+
+======================================================================
+OPENUI LANG / MIXED: catalog statements + one sandboxed artifact
+======================================================================
+
+--- step 1: Stream and parse
+  errors: none
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  [sandboxed HTML, 339 chars]
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 2: The same text is rejected by a catalog WITHOUT the escape hatch
+  errors: ["art: unknown component 'HtmlArtifact'. Allowed: ['BarChart', 'Button', 'Heading', 'Metric', 'Stack']"]

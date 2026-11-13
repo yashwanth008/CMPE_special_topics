@@ -1,0 +1,28 @@
+
+======================================================================
+JSON-RENDER / MIXED: catalog + sandboxed region + named actions
+======================================================================
+
+--- step 1: Stream the mixed spec
+  errors=none  first paint at line 2
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  [sandboxed HTML, 339 chars]
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 2: User clicks the button -> its action string
+handler returns a patch:
+    [
+      {
+        "op": "replace",
+        "path": "/elements/title/props/text",
+        "value": "EMEA: 410k revenue"
+      }
+    ]
+  # EMEA: 410k revenue
+  [ Revenue: $1.24M (+8.2%) ]
+  [sandboxed HTML, 339 chars]
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 3: A spec that names an unregistered action is inert
+  DENIED: no handler registered for 'drop_table'

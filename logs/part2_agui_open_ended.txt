@@ -1,0 +1,13 @@
+
+======================================================================
+AG-UI / OPEN-ENDED: streamed HTML in tool args, sandboxed on arrival
+======================================================================
+
+--- step 1: friendly agent run
+  assembled 549 chars from 6 ARGS chunks (nothing drawn before END)
+  lint clean -> render in sandboxed iframe
+  iframe tag starts: <iframe sandbox="allow-scripts" referrerpolicy="no-referrer" style="border:1px solid #ccc;width:100%;heig...
+
+--- step 2: hostile agent run
+  assembled 226 chars from 3 ARGS chunks (nothing drawn before END)
+  BLOCKED: ['external <script src>', 'network call', 'storage/cookie access', '<form> (can post data out)', 'external URL']

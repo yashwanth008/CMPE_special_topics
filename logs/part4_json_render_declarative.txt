@@ -1,0 +1,39 @@
+
+======================================================================
+JSON-RENDER / DECLARATIVE: streaming patches into the element map
+======================================================================
+
+--- step 1: Prompt generated from the catalog
+You may only use these components:
+- Stack(none) +children: Vertical container.
+- Heading(text:str): A section title.
+- Metric(label:str, value:str, delta:str): One KPI with change.
+- BarChart(data:dict): Bars from {label: number}.
+- Button(label:str, action:str): Sends a NAMED action to the app.
+
+--- step 2: Stream the spec as patch lines; render after each
+  wire> {"op": "add", "path": "/root", "value": "page"}
+  wire> {"op": "add", "path": "/elements/page", "value": {"type": "Stack", "props": {}, "children": ["title", "kpi", "
+  line 1/6  elements=[]
+  line 2/6  elements=['page']
+
+  line 3/6  elements=['page', 'title']
+      |   # Q3 sales summary
+  line 4/6  elements=['page', 'title', 'kpi']
+  line 5/6  elements=['page', 'title', 'kpi', 'chart']
+  line 6/6  elements=['page', 'title', 'kpi', 'chart', 'more']
+
+  first paint after line 2 of 6 (a nested tree would need the full text)
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  NA   #################### 520
+  EMEA ################ 410
+  APAC ############ 310
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 3: A bad element mid-stream is rejected on arrival; the rest still renders
+  errors fed back to model: ["kpi: unknown component 'Gauge'. Allowed: ['BarChart', 'Button', 'Heading', 'Metric', 'Stack']"]
+  partial result: ['page', 'title', 'chart', 'more']
+
+--- step 4: Two render targets, one spec
+  terminal: above; html -> out/part4_declarative.html

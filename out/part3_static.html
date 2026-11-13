@@ -1,0 +1,47 @@
+<!doctype html><meta charset=utf-8><title>static template app</title>
+<style>body{font:14px system-ui;max-width:460px;margin:12px auto}h4{margin:4px 0}
+iframe#app{width:100%;height:290px;border:2px solid #4f46e5;border-radius:8px}
+pre{background:#111;color:#9ef;padding:8px;border-radius:6px;font-size:11px;height:110px;overflow:auto}</style>
+<h4>HOST: static template app</h4><iframe id=app sandbox="allow-scripts" srcdoc="&lt;!doctype html&gt;&lt;meta charset=utf-8&gt;&lt;style&gt;body{font:14px system-ui;margin:8px}.m{border:1px solid #ddd;border-radius:10px;padding:8px 12px;margin:6px 0}.m b{font-size:24px;display:block}.m i{color:#16a34a}.bar{background:#4f46e5;height:14px;display:inline-block}button{padding:6px 10px;border-radius:8px;border:1px solid #4f46e5;background:#eef2ff;margin:4px 4px 4px 0}#status{color:#555;font-size:12px}&lt;/style&gt;&lt;div id=root&gt;waiting for tool result...&lt;/div&gt;&lt;div id=status&gt;&lt;/div&gt;&lt;script&gt;
+const esc = s =&gt; String(s).replace(/[&amp;&lt;&gt;&quot;&#x27;]/g, c =&gt; ({&#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;,&#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;,&#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;,&#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;,&quot;&#x27;&quot;:&#x27;&amp;#39;&#x27;}[c]));
+let rid = 1;
+const rpc = (method, params) =&gt; parent.postMessage({jsonrpc:&#x27;2.0&#x27;, id: rid++, method, params}, &#x27;*&#x27;);
+rpc(&#x27;ui/initialize&#x27;, {appInfo: {name: &#x27;demo-app&#x27;}});
+addEventListener(&#x27;message&#x27;, e =&gt; {
+  const m = e.data || {};
+  if (m.method === &#x27;ui/notifications/tool-result&#x27;) render(m.params.structuredContent);
+  else if (m.result &amp;&amp; m.result.content) document.getElementById(&#x27;status&#x27;).textContent = &#x27;host replied: &#x27; + m.result.content[0].text;
+  else if (m.error) document.getElementById(&#x27;status&#x27;).textContent = &#x27;host said: &#x27; + m.error.message;
+});
+const act = (name, args) =&gt; rpc(&#x27;tools/call&#x27;, {name, arguments: args});
+
+function render(d) {
+  document.getElementById(&#x27;root&#x27;).innerHTML =
+    &#x27;&lt;div class=m&gt;&lt;small&gt;&#x27; + esc(d.label) + &#x27;&lt;/small&gt;&lt;b&gt;&#x27; + esc(d.value) + &#x27;&lt;/b&gt;&lt;i&gt;&#x27; + esc(d.delta) + &#x27;&lt;/i&gt;&lt;/div&gt;&#x27; +
+    &#x27;&lt;button onclick=&quot;act(\&#x27;show_region_details\&#x27;, {region: \&#x27;EMEA\&#x27;})&quot;&gt;Show EMEA details&lt;/button&gt;&#x27;;
+}
+&lt;/script&gt;"></iframe>
+<h4>bridge log</h4><pre id=log></pre>
+<script>
+const log = s => document.getElementById('log').textContent += s + '\n';
+const f = document.getElementById('app'), APP_TOOLS = ['show_region_details'];
+window.addEventListener('message', e => {
+  if (e.source !== f.contentWindow) return;
+  const m = e.data;
+  log('app  -> host  ' + m.method + (m.params && m.params.name ? '(' + m.params.name + ')' : ''));
+  if (m.method === 'ui/initialize') {
+    f.contentWindow.postMessage({jsonrpc:'2.0', id:m.id, result:{hostContext:{theme:'light'}}}, '*');
+    log('host -> app   initialize result');
+  }
+  if (m.method === 'tools/call') {
+    const ok = APP_TOOLS.includes(m.params.name);
+    f.contentWindow.postMessage(ok ? {jsonrpc:'2.0', id:m.id, result:{content:[{type:'text', text:'EMEA: 410k'}]}}
+                                   : {jsonrpc:'2.0', id:m.id, error:{code:-32001, message:'refused'}}, '*');
+    log('host -> app   ' + (ok ? 'tool result' : 'REFUSED'));
+  }
+});
+f.addEventListener('load', () => setTimeout(() => {
+  f.contentWindow.postMessage({"jsonrpc": "2.0", "method": "ui/notifications/tool-result", "params": {"content": [{"type": "text", "text": "{\"label\": \"Q3 revenue\", \"value\": \"$1.24M\", \"delta\": \"+8.2%\"}"}], "structuredContent": {"label": "Q3 revenue", "value": "$1.24M", "delta": "+8.2%"}}}, '*');
+  log('host -> app   ui/notifications/tool-result');
+}, 50));
+</script>

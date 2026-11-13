@@ -1,0 +1,14 @@
+
+======================================================================
+HARNESS / STATIC: preset UI tool in the agent loop
+======================================================================
+
+--- step 1: Run the agent loop
+turn 1: tool call get_sales_data()
+         result -> <data>
+turn 2: tool call show_metric(label, value, delta)
+  [terminal surface]
+    [ Q3 revenue: $1.24M (+8.2%) ]
+  [web surface] wrote out/part6_static.html
+         result -> ok: rendered on terminal and web surfaces
+turn 3: model says: Q3 revenue is $1.24M, up 8.2%.

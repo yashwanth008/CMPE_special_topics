@@ -1,0 +1,27 @@
+
+======================================================================
+AG-UI / MIXED: catalog + sandboxed region, with an action round trip
+======================================================================
+
+--- step 1: Run 1: initial UI.
+  RUN_STARTED
+  STATE_SNAPSHOT
+  RUN_FINISHED
+  # Q3 sales summary
+  [ Revenue: $1.24M (+8.2%) ]
+  [sandboxed HTML, 339 chars]
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 2: User clicks 'Show EMEA details' -> run 2 carries the action name.
+  RUN_STARTED
+  STATE_DELTA
+  RUN_FINISHED
+  # EMEA: 410k revenue
+  [ Revenue: $1.24M (+8.2%) ]
+  [sandboxed HTML, 339 chars]
+  <Show EMEA details> -> action 'show_region:EMEA'
+
+--- step 3: A forged action is refused by the SERVER, whatever the UI claims.
+  RUN_STARTED
+  RUN_ERROR
+  ERROR: action 'export_customer_table' not permitted

@@ -1,0 +1,14 @@
+
+======================================================================
+OPENUI LANG / OPEN-ENDED: markup as a string argument
+======================================================================
+
+--- step 1: friendly: model writes one HtmlArtifact statement
+  wire> root = HtmlArtifact("<div style=\"font-family:sans-serif;padding:16px\"> <h2>Q3 sales sum...
+  parse errors: none | lint: clean
+[sandboxed HTML, 549 chars]
+
+--- step 2: hostile: model writes one HtmlArtifact statement
+  wire> root = HtmlArtifact("<div>Totally normal chart</div> <script src=\"https://evil.example/s...
+  parse errors: none | lint: ['external <script src>', 'network call', 'storage/cookie access', '<form> (can post data out)', 'external URL']
+  -> blocked before render

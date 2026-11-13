@@ -1,0 +1,28 @@
+
+======================================================================
+A2UI / STATIC: fixed surface, model supplies data only
+======================================================================
+
+--- step 1: App-owned surface. Written by a developer, never by the model.
+app messages:
+    {"surfaceUpdate": {"surfaceId": "kpi", "components": [{"id": "card", "component": {"Metric": {"label": "Q3 revenue", "value": {"path": "/value"}, "delta": {"path": "/delta"}}}}]}}
+    {"beginRendering": {"surfaceId": "kpi", "root": "card"}}
+
+--- step 2: The 'model' replies with data only (a dataModelUpdate).
+model reply:
+    {
+      "dataModelUpdate": {
+        "surfaceId": "kpi",
+        "contents": {
+          "value": "$1.24M",
+          "delta": "+8.2%"
+        }
+      }
+    }
+
+--- step 3: Client applies app messages, then the model's data. Render.
+[ Q3 revenue: $1.24M (+8.2%) ]
+
+--- step 4: Prove the boundary: the app only accepts dataModelUpdate from the model.
+accepted: dataModelUpdate
+REJECTED: static mode: model may not send 'surfaceUpdate'

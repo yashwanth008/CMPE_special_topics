@@ -1,0 +1,61 @@
+
+======================================================================
+JSON-RENDER / STATIC: app-owned spec, model fills $state
+======================================================================
+
+--- step 1: App spec with bindings (never model-written)
+spec:
+    {
+      "root": "page",
+      "elements": {
+        "page": {
+          "type": "Stack",
+          "props": {},
+          "children": [
+            "kpi",
+            "chart"
+          ]
+        },
+        "kpi": {
+          "type": "Metric",
+          "props": {
+            "label": "Q3 revenue",
+            "value": {
+              "$state": "/revenue"
+            },
+            "delta": {
+              "$state": "/growth"
+            }
+          }
+        },
+        "chart": {
+          "type": "BarChart",
+          "props": {
+            "data": {
+              "$state": "/regions"
+            }
+          }
+        }
+      }
+    }
+
+--- step 2: Model replies with state only
+state:
+    {
+      "revenue": "$1.24M",
+      "growth": "+8.2%",
+      "regions": {
+        "NA": 520,
+        "EMEA": 410,
+        "APAC": 310
+      }
+    }
+
+--- step 3: Resolve bindings, validate, render
+  [ Q3 revenue: $1.24M (+8.2%) ]
+  NA   #################### 520
+  EMEA ################ 410
+  APAC ############ 310
+
+--- step 4: Unbound state paths fail loudly (a model can't invent structure by inventing state)
+  missing state key: 'growth'

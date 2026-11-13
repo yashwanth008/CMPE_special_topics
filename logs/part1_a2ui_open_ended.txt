@@ -1,0 +1,16 @@
+
+======================================================================
+A2UI / OPEN-ENDED: one custom component carries model-written HTML
+======================================================================
+
+--- step 1: Model returns HTML (friendly reply). Lint first.
+lint findings: none
+[sandboxed HTML, 549 chars]
+
+--- step 2: Render inside sandbox. The only exit is postMessage; the host checks shape and action name.
+allowed : {'type': 'action', 'name': 'show_region', 'arg': 'EMEA'}
+rejected: action 'delete_everything' is not allowed
+
+--- step 3: Model returns HTML (hostile reply). Lint first.
+lint findings: ['external <script src>', 'network call', 'storage/cookie access', '<form> (can post data out)', 'external URL']
+-> BLOCKED: not rendered. Findings are returned to the model as an error.

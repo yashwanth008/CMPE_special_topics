@@ -1,0 +1,35 @@
+
+======================================================================
+AG-UI / STATIC: tool-call events -> fixed component registry
+======================================================================
+
+--- step 1: Frontend POSTs RunAgentInput; server answers with an SSE stream.
+RunAgentInput:
+    {
+      "threadId": "t1",
+      "runId": "run_1392a9",
+      "state": {},
+      "messages": [
+        {
+          "role": "user",
+          "content": "Give me a Q3 sales summary"
+        }
+      ],
+      "forwardedProps": {}
+    }
+first 3 wire lines:
+    data: {"type": "RUN_STARTED", "threadId": "t1", "runId": "run_1392a9"}
+    data: {"type": "TOOL_CALL_START", "toolCallId": "call_867090", "toolCallName": "show_metric"}
+    data: {"type": "TOOL_CALL_ARGS", "toolCallId": "call_867090", "delta": "{\"label\": \"Q3 revenue\""}
+
+--- step 2: Client decodes the stream and reacts to each event.
+  RUN_STARTED        
+  TOOL_CALL_START    show_metric
+  TOOL_CALL_ARGS     {"label": "Q3 revenue"
+  TOOL_CALL_ARGS     , "value": "$1.24M", "
+  TOOL_CALL_ARGS     delta": "+8.2%"}
+  TOOL_CALL_END      
+  RUN_FINISHED       
+
+--- step 3: Registry lookup -> render.
+[ Q3 revenue: $1.24M (+8.2%) ]
