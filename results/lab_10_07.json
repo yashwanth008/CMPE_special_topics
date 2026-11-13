@@ -1,0 +1,37 @@
+{
+  "inconclusive_frac": 0.8980716253443526,
+  "rows": {
+    "recurrence": {
+      "per_run": 51.4,
+      "probes": 457,
+      "found": 32,
+      "resolved": 32
+    },
+    "opposing": {
+      "per_run": 2.6,
+      "probes": 0,
+      "found": 0,
+      "resolved": 0
+    },
+    "mismatch": {
+      "per_run": 25.766666666666666,
+      "probes": 269,
+      "found": 42,
+      "resolved": 42
+    }
+  },
+  "named": {
+    "punct_stripper": 29,
+    "mixed_pattern_drops_whole": 16,
+    "frac_pattern_swapped": 12,
+    "range_pattern_lower_bound": 11,
+    "note_comma_greedy": 3,
+    "unit_alias_collision": 2,
+    "strip_first_item_word": 1
+  },
+  "planted_named": 29,
+  "planted_fixed": 29,
+  "emergent": 45,
+  "probe_cost": 2445.3333333333335,
+  "probes_per_run": 24.2
+}

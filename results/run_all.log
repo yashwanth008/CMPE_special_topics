@@ -1,0 +1,562 @@
+
+
+######## lab_10_03_run_budget_rsi.py ########
+
+==============================================================================
+10.03 Budget RSI - walk-through (seed 100)
+==============================================================================
+splits: fit=24  steering=80  pool=120  HELD-OUT test=400
+calibration: 96 labelled (parent, edit) pairs, cost 3264 instance-evals ({'calib_parent_steer': 960, 'calib_label_fit': 2304})
+frozen linear readout  w0 + w.[parent_rate, 8 diff coords]:
+   intercept -0.011
+   parent_steer_rate        +0.664
+   lines_added              +0.000
+   lines_deleted            +0.000
+   regex_lines_added        +0.117
+   table_entries_added      +0.009
+   touches_normalizers      -0.072
+   touches_qty_patterns     -0.017
+   touches_unit_table       +0.088
+   touches_note_patterns    +0.001
+
+score of three proposals from the base scaffold (no execution of the child needed):
+   frac_pattern       diff=[1, 0, 1, 0, 0, 1, 0, 0]  predicted fit-score 0.288
+   digits_stripper    diff=[1, 0, 1, 0, 1, 0, 0, 0]  predicted fit-score 0.233
+   collapse_spaces    diff=[1, 0, 1, 0, 1, 0, 0, 0]  predicted fit-score 0.233
+
+==============================================================================
+10.03 Budget RSI - 30 fresh seeds (100..129)
+==============================================================================
+method                                        held-out   ±sem  steer    cost
+Budget RSI readout (pays calibration)            0.596  0.020  0.659    5264
+parent-rate ablation                             0.602  0.023  0.661    5264
+random edit (24 expansions)                      0.555  0.013  0.619    2000
+HGM-style, budget-matched                        0.834  0.018  0.879    5200
+oracle: evaluate all 8/step                      0.888  0.011  0.950   17360
+readout calibrated ONCE on other world           0.597  0.022  0.669    2000
+HGM-style @ search-only budget                   0.601  0.025  0.667    2000
+
+Paired differences on held-out accuracy (readout minus X), mean [95% CI] over 30 seeds:
+   vs parent-rate ablation                   -0.006 [-0.070, +0.052] -> no clear difference
+   vs random edit (24 expansions)            +0.041 [-0.006, +0.086] -> no clear difference
+   vs HGM-style, budget-matched              -0.238 [-0.290, -0.189] -> worse
+   vs oracle: evaluate all 8/step            -0.292 [-0.331, -0.251] -> worse
+   amortized readout vs HGM @ same search-only budget: -0.004 [-0.059, +0.050] -> no clear difference
+
+calibration is 62% of the readout method's total cost (3264 of 5264)
+steering-vs-held-out gap (selection optimism):  readout: +0.063, hgm_matched: +0.045, oracle: +0.062
+figure -> results/figures/lab_10_03_budget_rsi.png
+
+
+######## lab_10_04_analyze_scoring.py ########
+
+==============================================================================
+10.04 feature importance (averaged over 30 seeds)
+==============================================================================
+feature                    mean w  std(x)  |w|*std  sign-stable
+parent_steer_rate          +0.926   0.140    0.128  100%
+regex_lines_added          +0.050   0.480    0.027  87%
+touches_normalizers        -0.052   0.474    0.025  97%
+touches_unit_table         +0.045   0.399    0.019  87%
+table_entries_added        +0.005   2.664    0.017  90%
+touches_qty_patterns       +0.028   0.450    0.014  83%
+touches_note_patterns      -0.021   0.366    0.014  60%
+lines_deleted              +0.000   0.000    0.000  0%
+lines_added                -0.000   0.000    0.000  7%
+
+lines_added is always 1 and lines_deleted always 0 for library edits (each edit adds one tagged line) -> these two columns are constant, their weights are unidentifiable (ridge sets ~0).
+
+==============================================================================
+10.04 does the readout rank edits WITHIN a parent?  (60 trials x 30 seeds, 8 proposals each)
+==============================================================================
+8 diff coords (paper)    P(top-1 beats parent)=0.43   P(random pick beats parent)=0.23   within-parent Spearman=0.44
+4 diff coords            P(top-1 beats parent)=0.41   P(random pick beats parent)=0.23   within-parent Spearman=0.38
+
+==============================================================================
+10.04 fewer calibration edits
+==============================================================================
+n_cal=  12  calibration cost= 1248  P(top beats parent)=0.34  Spearman=0.25
+n_cal=  24  calibration cost= 1536  P(top beats parent)=0.37  Spearman=0.32
+n_cal=  48  calibration cost= 2112  P(top beats parent)=0.41  Spearman=0.43
+n_cal=  96  calibration cost= 3264  P(top beats parent)=0.43  Spearman=0.44
+n_cal= 192  calibration cost= 5568  P(top beats parent)=0.42  Spearman=0.46
+
+READ-OUT: the readout does pick improving edits more often than chance, but see lab 10.03 for whether that pays for its calibration cost.
+
+
+######## lab_10_05_extend_features.py ########
+
+==============================================================================
+10.05 feature-set comparison over 30 fresh seeds
+==============================================================================
+features          readout test  HGM matched   cost  P(top>parent)   rho  dup picks
+A paper-8          0.596±0.020        0.834   5264           0.43  0.44       0.42
+B +canary          0.566±0.018        0.851   6416           0.41  0.49       0.41
+C +canary+dup      0.574±0.017        0.851   6416           0.38  0.48       0.44
+(random pick beats parent 0.23 of the time)
+
+==============================================================================
+10.05 hypotheses
+==============================================================================
+H1 canary improves within-parent Spearman: 0.44 -> 0.49  => SUPPORTED
+H2 duplicate flag cuts wasted expansions : 0.41 -> 0.44  => NOT supported
+
+end-to-end held-out, paired vs HGM-matched:
+  A paper-8        readout - HGM = -0.238 [-0.290, -0.189] -> worse
+  B +canary        readout - HGM = -0.285 [-0.328, -0.242] -> worse
+  C +canary+dup    readout - HGM = -0.277 [-0.323, -0.233] -> worse
+
+amortized readout (calibrated on another world) vs HGM at the same search-only budget:
+  A paper-8        -0.004 [-0.059, +0.050] -> no clear difference
+  B +canary        -0.116 [-0.166, -0.067] -> worse
+  C +canary+dup    -0.112 [-0.174, -0.046] -> worse
+
+TAKEAWAY: if the features cannot distinguish a good edit from a plausible-looking broken one, scoring cannot rescue the search - exactly the course's Q1 for this lab.
+
+
+######## lab_10_06_run_so_rsi.py ########
+
+==============================================================================
+10.06 one SO-RSI run, narrated (seed 100, planted blocker, budget 3000)
+==============================================================================
+   [step 2] anomaly:mismatch   edit targeted 'pinch' was accepted but 'pinch' accuracy did not rise
+   [step 2] PROBE 'pinch': blocker=None gain=+0.00
+   [step 3] anomaly:mismatch   edit targeted 'paren' was accepted but 'paren' accuracy did not rise
+   [step 3] PROBE 'paren': blocker=punct_stripper gain=+1.00
+   [step 10] anomaly:mismatch   edit targeted 'mixed' was accepted but 'mixed' accuracy did not rise
+   [step 10] PROBE 'mixed': blocker=None gain=+0.00
+   [step 11] anomaly:mismatch   edit targeted 'mixed' was accepted but 'mixed' accuracy did not rise
+   [step 12] anomaly:mismatch   edit targeted 'unicode' was accepted but 'unicode' accuracy did not rise
+   [step 12] PROBE 'unicode': blocker=mixed_pattern_drops_whole gain=+0.75
+   [step 13] anomaly:opposing   'remove:mixed_pattern_drops_whole+unicode_fraction_half_only' reverses an edit accepted in the last 8 attempts
+   [step 15] anomaly:opposing   'remove:unicode_fraction_half_only' reverses an edit accepted in the last 8 attempts
+   [step 17] anomaly:recurrence edit 'pinch_qty' repeated after 1 non-improving try
+   [step 17] PROBE 'pinch': blocker=None gain=+0.00
+   [step 18] anomaly:mismatch   edit targeted 'range' was accepted but 'range' accuracy did not rise
+   [step 18] PROBE 'range': blocker=None gain=+0.00
+   [step 19] anomaly:mismatch   edit targeted 'fraction' was accepted but 'fraction' accuracy did not rise
+   [step 19] PROBE 'fraction': blocker=None gain=+0.00
+   [step 20] anomaly:mismatch   edit targeted 'synonym' was accepted but 'synonym' accuracy did not rise
+   [step 20] PROBE 'synonym': blocker=None gain=+0.00
+   [step 21] anomaly:recurrence 3 consecutive attempts on 'mixed' with no gain
+   [step 21] PROBE 'mixed': blocker=None gain=+0.00
+   [step 22] anomaly:recurrence edit 'unit_abbrev_extra' repeated after 1 non-improving try
+   [step 22] anomaly:mismatch   edit targeted 'synonym' was accepted but 'synonym' accuracy did not rise
+   [step 23] anomaly:recurrence edit 'note_paren' repeated after 1 non-improving try
+   [step 23] PROBE 'paren': blocker=None gain=+0.00
+   [step 24] anomaly:recurrence 4 consecutive attempts on 'mixed' with no gain
+   [step 24] anomaly:recurrence edit 'mixed_pattern' repeated after 1 non-improving try
+   [step 24] anomaly:mismatch   edit targeted 'mixed' was accepted but 'mixed' accuracy did not rise
+   [step 26] anomaly:recurrence edit 'collapse_spaces' repeated after 1 non-improving try
+   [step 27] anomaly:mismatch   edit targeted 'fraction' was accepted but 'fraction' accuracy did not rise
+   [step 28] anomaly:recurrence 3 consecutive attempts on 'fraction' with no gain
+   [step 28] anomaly:recurrence edit 'frac_pattern' repeated after 1 non-improving try
+   [step 28] anomaly:mismatch   edit targeted 'fraction' was accepted but 'fraction' accuracy did not rise
+... 28 attempts, 10 probes costing 631 evals, held-out 0.840
+first 12 trace rows (step, edit, accepted, d_steer, forced_by_memory):
+    (1, 'collapse_spaces', True, 0.0, False)
+    (2, 'pinch_qty', True, 0.0, False)
+    (3, 'note_paren', True, 0.0, False)
+    (4, 'remove:punct_stripper+note_paren', True, 0.212, True)
+    (5, 'frac_pattern', True, 0.1, False)
+    (6, 'unit_long_names', True, 0.088, False)
+    (7, 'note_comma', True, 0.138, False)
+    (8, 'range_pattern', True, 0.137, False)
+    (9, 'unicode_fraction_map', True, 0.012, False)
+    (10, 'mixed_pattern_drops_whole', True, 0.0, False)
+    (11, 'mixed_pattern', True, 0.0, False)
+    (12, 'unicode_fraction_half_only', True, 0.0, False)
+
+==============================================================================
+10.06 30 fresh seeds - planted start - held-out accuracy of incumbent at budget
+==============================================================================
+ budget         naive   naive+blind        so_rsi   SO-RSI - naive [95% CI]      SO-RSI - naive+blind [95% CI]
+   1500         0.340         0.456         0.642   +0.302 [+0.237, +0.364]      +0.186 [+0.095, +0.279] -> better
+   3000         0.429         0.637         0.929   +0.500 [+0.436, +0.559]      +0.291 [+0.205, +0.383] -> better
+   5000         0.473         0.726         0.973   +0.500 [+0.439, +0.557]      +0.247 [+0.164, +0.332] -> better
+   8000         0.485         0.794         0.977   +0.492 [+0.434, +0.546]      +0.182 [+0.104, +0.267] -> better
+SO-RSI overhead: 24.2 probes/run costing 2445 of 8000 evals (31%)
+
+==============================================================================
+10.06 30 fresh seeds - clean start - held-out accuracy of incumbent at budget
+==============================================================================
+ budget         naive   naive+blind        so_rsi   SO-RSI - naive [95% CI]      SO-RSI - naive+blind [95% CI]
+   1500         0.689         0.668         0.721   +0.032 [-0.012, +0.077]      +0.053 [-0.031, +0.138] -> no clear difference
+   3000         0.795         0.839         0.969   +0.174 [+0.127, +0.222]      +0.130 [+0.073, +0.190] -> better
+   5000         0.814         0.919         0.991   +0.177 [+0.133, +0.219]      +0.071 [+0.034, +0.113] -> better
+   8000         0.824         0.961         0.999   +0.174 [+0.132, +0.215]      +0.038 [+0.014, +0.066] -> better
+SO-RSI overhead: 23.4 probes/run costing 2412 of 8000 evals (30%)
+figure -> results/figures/lab_10_06_so_rsi.png
+
+
+######## lab_10_07_analyze_probes.py ########
+
+==============================================================================
+10.07 30 seeds, SO-RSI, planted start, budget 8000
+==============================================================================
+anomaly     count/run  probes  blocker found  later resolved   typical meaning
+recurrence       51.4     457             32              32   same category / same edit failing repeatedly -> look for the
+opposing          2.6       0              0               0   an edit reverses a recently accepted one -> look for conflic
+mismatch         25.8     269             42              42   edit accepted but its target did not improve -> the model of
+LIMITATION: 'opposing' fires (2.6/run) but never launched a probe - the triggering edit is a removal and our counterfactual probe needs an additive edit to test. It is logged, not acted on.
+
+why each probe addresses a ROOT cause:
+  recurrence  stops thrashing: converts 'try another patch' into 'ask what blocks every patch'
+  opposing    oscillation means two edits fight; the probe tests whether a third stage causes the fight
+  mismatch    expectation violated while the loop believes it progressed (ties are accepted) - hidden failure made visible
+
+blockers named across 30 runs: {'punct_stripper': 29, 'mixed_pattern_drops_whole': 16, 'frac_pattern_swapped': 12, 'range_pattern_lower_bound': 11, 'note_comma_greedy': 3, 'unit_alias_collision': 2, 'strip_first_item_word': 1}
+status of investigations: {'inconclusive': 652, 'resolved': 74}
+runs where the PLANTED blocker was named: 29/30; named AND its removal accepted: 29/30
+EMERGENT blockers (created by the loop's own buggy variants, not planted): 45 investigations named one
+probe cost: 2445 evals/run = 31% of budget; 24.2 probes/run
+probes that came back inconclusive (no stage blocked the edit): 90%
+persistent inquiry memory of seed 100 -> results/inquiry_memory_seed100.json
+
+
+######## lab_10_08_apply_debugging.py ########
+
+==============================================================================
+10.08 executed fix attempts
+==============================================================================
+attempt 1: swap operands    test passes=False   anomalies=[]
+attempt 2: use subtraction  test passes=False   anomalies=[]
+attempt 3: revert to a+b    test passes=False   anomalies=['recurrence']
+           recurrence: 3 consecutive attempts on 'add_test' with no gain
+attempt 4: add int casts    test passes=False   anomalies=['recurrence']
+           recurrence: 4 consecutive attempts on 'add_test' with no gain
+attempt 5: revert to a+b    test passes=False   anomalies=['recurrence', 'recurrence']
+           recurrence: 5 consecutive attempts on 'add_test' with no gain
+           recurrence: edit 'revert to a+b' repeated after 1 non-improving try
+
+==============================================================================
+10.08 diagnostic probe (executable): is the FUNCTION wrong or the TEST wrong?
+==============================================================================
+fixture passes args (2, 4); reference add(2, 4) = 6; test expects 5
+-> even the reference implementation fails => the root cause is the fixture, not any candidate fix
+with the corrected fixture (2, 3): reference gives 5 == 5 -> True
+
+LESSON: five patches to the function could never pass; one probe on the reference located the cause.
+
+
+######## lab_10_10_areal_leader_follower.py ########
+
+==============================================================================
+10.10 shared conditional memory vs independent researchers (30 fresh seeds)
+==============================================================================
+ budget   shared    indep  difference [95% CI]                       repeats shared/indep  campaigns
+   1500    0.558    0.515  +0.043 [+0.004, +0.083] -> better              0.0/2.3       3.3
+   2500    0.830    0.719  +0.112 [+0.073, +0.152] -> better              0.0/4.5       6.4
+   4000    0.865    0.883  -0.018 [-0.038, +0.004] -> no clear difference   0.0/9.9       8.9
+
+example shared-memory findings (seed 100): orientation, edit, status
+    ('range', 'range_pattern_lower_bound', 'refuted')
+    ('range', 'range_pattern', 'supported')
+    ('range', 'strip_trailing_period', 'refuted')
+    ('synonym', 'unit_long_names_partial', 'supported')
+    ('synonym', 'unit_alias_collision', 'refuted')
+    ('synonym', 'unit_abbrev_extra', 'supported')
+    ('synonym', 'unit_long_names', 'supported')
+    ('synonym', 'strip_first_item_word', 'refuted')
+    ('synonym', 'unicode_fraction_map', 'refuted')
+    ('note', 'note_comma', 'supported')
+
+unresolved findings (steering says better, fit split says worse): 0.00/run - the memory keeps them OUT of the 'supported' set
+
+
+######## lab_10_11_swarm.py ########
+
+==============================================================================
+10.11 swarm vs mutation-only vs random search (30 fresh seeds)
+==============================================================================
+ budget    swarm  mut-only   random  swarm-mut_only [95% CI]                 swarm-random [95% CI]                final diversity (swarm / mut-only)
+   3000    0.652     0.637    0.541  +0.014 [-0.023, +0.051] -> no clear difference +0.111 [+0.073, +0.147] -> better      0.25 / 0.46
+   6000    0.930     0.948    0.753  -0.018 [-0.053, +0.016] -> no clear difference +0.177 [+0.133, +0.217] -> better      0.09 / 0.18
+
+diversity by generation (budget 6000):
+   swarm          0.95 0.70 0.44 0.30 0.24 0.21 0.13 0.12
+   mutation_only  0.95 0.87 0.78 0.69 0.60 0.52 0.50 0.46
+
+best genome found on seed 100: ['frac_pattern', 'note_comma', 'unicode_fraction_map', 'range_pattern', 'note_paren', 'mixed_pattern', 'unit_long_names', 'unit_abbrev_extra'] -> steering 1.000, held-out 0.840
+
+
+######## lab_10_13_rsiflow_meta_agent.py ########
+
+==============================================================================
+10.13 static vs all_on vs adaptive workflow (30 fresh seeds, planted start)
+==============================================================================
+ budget   static   all_on  adaptive   adaptive-static [95% CI]            adaptive-all_on [95% CI]
+   3000    0.429    0.945     0.662   +0.234 [+0.162, +0.314] -> better    -0.282 [-0.364, -0.198] -> worse
+   6000    0.470    0.966     0.720   +0.250 [+0.172, +0.337] -> better    -0.245 [-0.328, -0.164] -> worse
+   9000    0.491    0.966     0.720   +0.229 [+0.148, +0.316] -> better    -0.246 [-0.329, -0.165] -> worse
+
+routing decisions of the meta-agent on seed 100 (cycle, evals spent so far, stage switched ON, measured reason):
+    (16, 1360.0, 'dedup', 'dup_rate=0.50')
+    (16, 1360.0, 'diagnose', 'no gain in window')
+    (61, 3054.0, 'guard', 'harmful_rate=0.62')
+
+evaluation budget WASTED (instance-evals) at budget 6000, mean/run:
+   static   duplicates=3427  harmful=1040
+   adaptive duplicates=275  harmful=1688
+meta-agent detection latency (mean cycle at which each stage is switched on, over runs that switched it): {'dedup': 16.5, 'guard': 28.8, 'diagnose': 47.9}
+
+READ-OUT: adaptation beats a static pipeline, but pays DETECTION LATENCY; when stages are cheap, switching them all on from cycle 0 wins.
+
+
+######## lab_10_14_self_hpo.py ########
+
+==============================================================================
+10.14 Self-HPO vs policy-only vs harness-only (30 fresh seeds, clean start)
+==============================================================================
+ budget          none   policy_only  harness_only      self_hpo   episodes(none/pol/har/joint)   H-step share
+   4000         0.543         0.562         0.234         0.234   14/14/0/0   96%
+   6000         0.691         0.741         0.349         0.352   22/22/5/5   85%
+   9000         0.773         0.828         0.732         0.752   33/33/35/37   55%
+  12000         0.808         0.831         0.835         0.842   45/45/63/68   41%
+  20000         0.822         0.834         0.842         0.851   75/75/150/233   23%
+
+==============================================================================
+10.14 paper's synergy claim:  (joint - policy_only) - (harness_only - none)  [95% CI]; >0 means super-additive
+==============================================================================
+budget   4000: synergy -0.019 [-0.040, +0.002] -> not distinguishable from additive  | joint-none -0.309 [-0.356,-0.262] | joint-policy_only -0.328 [-0.375,-0.280]
+budget   6000: synergy -0.046 [-0.087, -0.008] -> sub-additive                       | joint-none -0.339 [-0.394,-0.286] | joint-policy_only -0.389 [-0.451,-0.330]
+budget   9000: synergy -0.035 [-0.111, +0.042] -> not distinguishable from additive  | joint-none -0.021 [-0.108,+0.068] | joint-policy_only -0.076 [-0.166,+0.013]
+budget  12000: synergy -0.016 [-0.060, +0.025] -> not distinguishable from additive  | joint-none +0.034 [-0.032,+0.094] | joint-policy_only +0.010 [-0.056,+0.077]
+budget  20000: synergy -0.003 [-0.045, +0.038] -> not distinguishable from additive  | joint-none +0.029 [-0.027,+0.086] | joint-policy_only +0.017 [-0.040,+0.077]
+
+harness the H-step chose most often at budget 12000: {"(False, 'all')": 38, "(False, 'hard')": 25, "(True, 'balanced')": 17, "(False, 'balanced')": 16, "(True, 'hard')": 14, "(True, 'all')": 10}
+seed 100 round-by-round held-out: [0.568, 0.593, 0.752, 0.843] | harness per round: [(False, 'all'), (False, 'balanced'), (False, 'all'), (False, 'hard')] | hard-set size per round: [82, 43, 34, 24]
+policy's top-3 preferred edits after training (seed 100): ['note_paren', 'unicode_fraction_map', 'strip_trailing_period']
+budget by service (seed 100): {'init': 24, 'hstep_mine': 480, 'hstep_val': 960, 'hstep_probe': 3732, 'train': 6752}
+
+
+######## lab_10_15_rsi_index.py ########
+
+==============================================================================
+10.15 the course's worked example, both formulas
+==============================================================================
+benchmarks (initial, final, ideal=1.0): [(0.5, 0.75), (0.2, 0.6)]
+corrected  (final-initial)/(ideal-initial):  0.5  <- matches the course's 0.5
+as printed (initial-final)/(ideal-initial):  -0.5  <- negative: sign error in the lab text
+synthetic 5-benchmark scenario:
+   gap closed per benchmark: [0.36, 0.21, 0.39, 0.25, 0.0] -> RSI-Index 0.241 (raw mean gain only 0.146)
+
+==============================================================================
+10.15 RSI-Index of our RSI arms (held-out, 30 seeds, 4 skill-group 'benchmarks')
+==============================================================================
+system                                        RSI-Index    ±sem
+SO-RSI lab, planted start, naive                  0.507   0.029
+SO-RSI lab, planted start, naive+blind            0.782   0.050
+SO-RSI lab, planted start, so_rsi                 0.971   0.025
+SO-RSI lab, clean start, naive                    0.864   0.019
+SO-RSI lab, clean start, naive+blind              0.969   0.011
+SO-RSI lab, clean start, so_rsi                   0.996   0.003
+Self-HPO lab, B=12000, none                       0.848   0.017
+Self-HPO lab, B=12000, policy_only                0.882   0.015
+Self-HPO lab, B=12000, harness_only               0.874   0.021
+Self-HPO lab, B=12000, self_hpo                   0.882   0.020
+
+NOTE: RSI-Index here averages group gaps with EQUAL weight; groups with initial=1.0 are skipped; it is not comparable to RSIGym's number.
+
+
+######## lab_10_16_environments.py ########
+
+==============================================================================
+10.16 A. budget by SERVICE (instance-evaluations; seed 100)
+==============================================================================
+
+Budget RSI readout  total=5264
+   calib_label_fit               2304    44%  #################
+   search_steer                  2000    38%  ###############
+   calib_parent_steer             960    18%  #######
+
+Budget RSI oracle  total=17360
+   search_steer                 17360   100%  ########################################
+
+Self-HPO (B=12000)  total=11948
+   train                         6752    57%  ######################
+   hstep_probe                   3732    31%  ############
+   hstep_val                      960     8%  ###
+   hstep_mine                     480     4%  #
+   init                            24     0%  
+
+Workflow adaptive (B=6000)  total=5998
+   steer                         3760    63%  #########################
+   probe                         2046    34%  #############
+   smoke                          192     3%  #
+
+SO-RSI (B=8000)  total=8000
+   steer (candidate eval)        5610    70%  ############################
+   probe (diagnosis)             2390    30%  ###########
+
+==============================================================================
+10.16 B. which environment when?  (claims = course summaries, unverified)
+==============================================================================
+
+RSIGym (EaaS)
+   feature : training / inference / rollout / eval / sandbox as reusable services, shared budget + permissions, data/harness/joint tracks
+   choose when: you must compare MANY RSI methods fairly on cost; you need budget + permission control
+   limit   : heavy: needs real services; overkill for a single toy loop
+
+Terminal-RSI
+   feature : terminal-agent infrastructure with RL (actor/critic phases)
+   choose when: the object improved is a terminal agent trained with RL
+   limit   : needs RL infra; not laptop-reproducible (course marks it analysis-only)
+
+R2Orch
+   feature : self-play environment: inner loop improves an orchestrator, outer loop improves the improver
+   choose when: the thing improved is a multi-agent orchestrator and you can generate tasks
+   limit   : task proposer can collapse to easy tasks unless rewarded for diverse outcomes
+
+This repo's testbed
+   feature : one scaffold (parser source) + exact-match data + a Meter; edits are real diffs, scores come from execution
+   choose when: you want fully reproducible, laptop-scale evidence about SELECTION / DIAGNOSIS / HARNESS ideas
+   limit   : proposer is a stub; single domain; planted structure; not evidence about LLM agents
+
+
+######## lab_10_17_metrics.py ########
+
+==============================================================================
+10.17 metric 1: RSI-Index
+==============================================================================
+   so:planted:naive           0.507 ± 0.029
+   so:planted:naive+blind     0.782 ± 0.050
+   so:planted:so_rsi          0.971 ± 0.025
+   hpo:none                   0.848 ± 0.017
+   hpo:self_hpo               0.882 ± 0.020
+   solves: compares systems started from different baselines.  limit: equal-weights groups; undefined when initial=ideal; hides cost.
+
+==============================================================================
+10.17 metric 2: steering-split solve rate and its optimism
+==============================================================================
+   readout      steering 0.659  held-out 0.596  optimism(steer-test)=+0.063
+   hgm_matched  steering 0.879  held-out 0.834  optimism(steer-test)=+0.045
+   oracle       steering 0.950  held-out 0.888  optimism(steer-test)=+0.062
+   random       steering 0.619  held-out 0.555  optimism(steer-test)=+0.064
+   solves: a cheap selection signal.  limit: it is optimistic.  In OUR runs the gap is ~+0.05-0.06 for EVERY method, even random selection,
+   so it is NOT growing with the number of candidates compared; it mostly reflects the dev-vs-test category shift (10% unseen-style pinch lines in test vs 3% in dev).
+
+==============================================================================
+10.17 metric 3: Recursive Learnability (our operationalisation)
+==============================================================================
+   planted  naive    learnability 0.226 ± 0.020  (from 6.6 categories/run)
+   planted  so_rsi   learnability 0.424 ± 0.021  (from 6.6 categories/run)
+   clean    naive    learnability 0.362 ± 0.029  (from 4.9 categories/run)
+   clean    so_rsi   learnability 0.457 ± 0.024  (from 6.6 categories/run)
+   solves: flags proposers stuck on tasks that always fail or are already solved.  limit: depends on the task taxonomy; says nothing about whether outcomes are GOOD.
+
+==============================================================================
+10.17 metric 4: swarm diversity (Jaccard)
+==============================================================================
+   budget 3000: swarm 0.25   mutation-only 0.46
+   budget 6000: swarm 0.09   mutation-only 0.18
+   solves: detects premature convergence.  limit: diversity of genomes != diversity of behaviour; here lower diversity went with equal accuracy, not worse.
+
+WHY SO MANY METRICS: each system changes a different object (scaffold, proposer, workflow, swarm); no single number covers all of them.
+
+
+######## lab_10_01_claim_vs_evidence.py ########
+# 10.01 Claim vs evidence - Budget RSI (arXiv:2610.29121, Darzi, Balija, He; submitted 21 Oct 2026)
+
+**Sources actually read:** the arXiv abstract page and fragments of the HTML version. I did *not* read the full tables, so
+figures marked UNVERIFIED are carried over from the course repo's summary and may be wrong.
+
+## Headline vs. what was measured vs. what is untested
+| # | Claim as stated | What supports it (paper side) | Conditions that limit it | What our laptop adaptation preserves / changes |
+|---|---|---|---|---|
+| 1 | A linear readout on the parent's steering-split solve rate plus eight diff coordinates, fitted from 96 scaffold edits labelled on a 16-instance fit split and then **frozen**, can rank proposed edits before they are evaluated. | Method description in the abstract/HTML: one readout per run, coefficients fixed through 24 keep steps, archive of four nodes; steering split = 48 (HumanEval+) / 64 (Polyglot) instances. | Coding agent = GPT-4o on two benchmarks; the 8 coordinates are the paper's own diff features. | Preserved: frozen linear readout, 96 calibration edits, archive of 4, 24 keep steps, 8 proposals/step. Changed: edits are patches to a parser (not an LLM rewriting a scaffold); diff coordinates are our 8 real unified-diff counts; fit/steering = 24/80. |
+| 2 | Under **matched checker-evaluation budgets** (readout & ablation: 96 calibration edits + 24 children; HGM selection: 144 children on Polyglot, 176 on HumanEval+) the readout is competitive or best. | Budget-matching statement in the HTML; "on HumanEval+ with GPT-4o the readout is the highest mean". Course summary says 87.0% vs 84.2% - **UNVERIFIED**. | One model, two benchmarks; I could not check variance or significance. | We matched budgets in instance-evaluations. Result here: readout minus HGM-matched = **-0.238 [-0.290, -0.189]** (held-out, 30 seeds): the claim did **not** carry over to our testbed. |
+| 3 | Scoring *before* running saves evaluation cost without losing selection quality. | Cost accounting in the abstract; the readout never evaluates rejected proposals. | Calibration cost is paid per run. | In our accounting calibration was **62%** of the readout method's cost. Mechanism check: the top-scored edit beat its parent 43% of the time vs 23% for a random pick - the scorer *does* rank, but not enough to pay for itself. |
+
+## What the paper does not (as far as I can see) test, and what we did about it
+* **Does a frozen readout transfer across runs?** We calibrated once on another world and reused it: readout-amortized vs HGM at the same search-only budget -> see lab 10.05 (no advantage).
+* **Are the 8 coordinates sufficient?** Our readout cannot tell `digits_stripper` (catastrophic) from `collapse_spaces` (harmless): identical diff coordinates, identical score (lab 10.03 walk-through).
+* **Do richer features help?** Adding an execution canary improved within-parent ranking (0.44 -> 0.49 Spearman) but did not improve end-to-end held-out accuracy; a duplicate-edit flag did not reduce wasted expansions (0.41 -> 0.44).
+
+## Why a laptop adaptation cannot prove the headline
+Different proposer, different data, different scale, one seed family. It can show a mechanism *works at ranking level* (it does) and show
+where it stops paying (it does not at our cost accounting). It cannot confirm or refute the GPT-4o numbers.
+
+## Quiz answers (own words)
+**Q1.** Can the paper claim linear-readout scoring works for all code-editing tasks? No - it evaluated one model on two benchmarks.
+**Q2.** Why synthetic edits in the course demo? To run without the benchmark and model. Caveat found while auditing: the course's demo generates
+`held_out = 6 x steering + noise`, so held-out is correlated with the proxy *by construction*, and its "88% cost reduction" is hand-written text, not measured.
+
+
+
+######## lab_10_02_audit_paper.py ########
+# 10.02 Paper audits (template from the course)
+
+## A. Budget RSI - arXiv:2610.29121
+| Aspect | Paper's setup | Laptop adaptation | What is preserved |
+|---|---|---|---|
+| Changed object | a coding agent's scaffold (code edits selected before evaluation) | the source text of an ingredient parser, patched by real edits | edits are code diffs; selection happens before execution |
+| Feedback type | parent's steering-split solve rate + 8 diff coordinates -> linear readout; labels from a 16-instance fit split | same inputs; fit split = 24, steering = 80 | one frozen linear readout per run |
+| Evaluation protocol | steering split 48 (HumanEval+) / 64 (Polyglot); 24 keep steps; archive of 4; HGM Thompson selection baseline | held-out 400-instance test never used for selection; 30 fresh seeds, paired CIs | steering/held-out separation |
+| Compute budget | equal checker evaluations across methods | equal instance evaluations (Meter) | matched-budget comparison |
+| Untested assumption | the frozen readout stays useful (and pays for its calibration) | tested: readout minus HGM-matched = -0.238; readout vs parent-rate ablation -0.006 | - |
+What a real test would need: the actual benchmark, the paper's proposer, and its diff features.
+
+## B. SO-RSI - arXiv:2610.05701 (Jiang, Vempaty, Jagmohan; submitted 5 Oct 2026)
+| Aspect | Paper's setup | Laptop adaptation | What is preserved |
+|---|---|---|---|
+| Changed object | the RSI *workflow* (outer RSI) for Lean 4 proving and Verus verified-code generation | parser source; the loop's edit choices | the improvement loop, not just the artifact |
+| Feedback type | execution traces, executable diagnostic probes, persistent inquiry memory | accept/reject traces, a causal stage-ablation probe, an InquiryMemory | anomaly -> probe -> memory -> structural edit |
+| Evaluation protocol | held-out pass rates under matched 24-hour search budgets; reported +21.8 (Lean) / +25.8 (Verus) points over Naive RSI | held-out accuracy at matched evaluation budget (probe cost charged), 30 seeds | matched budget, held-out |
+| Compute budget | 24 h per comparison | 8000 instance evaluations | - |
+| Untested assumption | the paper notes Naive RSI *already* does some diagnostic inquiry; SO-RSI makes it systematic | tested with a third arm: first-order + BLIND structural moves. At budget 8000 (planted start): naive 0.485, naive+blind 0.794, SO-RSI 0.977 - diagnosis adds beyond merely having structural moves | - |
+Caveats we found: our base scaffold contains a *planted* blocker; plain naive RSI cannot delete code it did not write, which inflates the headline gap
+(+0.49); the fair gap is vs naive+blind (+0.18). Probes cost ~31% of the budget and 90% returned no blocker.
+
+## C. Self-HPO - arXiv:2610.22791 (Wei, Yao, Peng et al., Microsoft Research)
+| Aspect | Paper's setup | Laptop adaptation | What is preserved |
+|---|---|---|---|
+| Changed object | harness AND policy of a coding agent | harness = (guard, search set); policy = softmax over edits | two coupled objects, alternating |
+| Feedback type | the policy analyses its own failures (H-step); RL under the chosen harness (P-step); hard tasks become the next search set | failure mining on a pool; REINFORCE; hard-set mode | self-proposed harness, evolving search set |
+| Evaluation protocol | SWE-bench Verified / Multilingual / Pro; reported average 57.8% -> 64.8% (Qwen3.5-35B-A3B) | held-out accuracy, 4 conditions, budget sweep, 30 seeds | policy-only and harness-only ablations |
+| Compute budget | RL training runs | instance evaluations; H-step probes charged | - |
+| Untested assumption | joint gain exceeds the sum of parts (the paper's cross-evaluation reports compounding) | tested: synergy at 12000 = -0.016 [-0.060, +0.025] -> not super-additive here | - |
+
+
+
+######## lab_10_09_compare_scaling.py ########
+# 10.09 Comparing AReaL-RSI-style and SwarmRSI-style scaling (measured on the ingredient-parser testbed)
+
+Mechanisms are from the course's summaries of arXiv:2610.18083 and arXiv:2610.20431 (not the papers); our
+simulations are small, so every number below is a statement about *our miniature*, not about the papers.
+
+| Aspect | AReaL-RSI style (leader + researchers) | SwarmRSI style (peer swarm) |
+|---|---|---|
+| Coordination | leader chooses an orientation; researchers test edits | 5 peer genomes mutate and recombine |
+| Memory | conditional: supported / refuted / unresolved findings, shared | the population itself; recombination imports peers' patches |
+| Selection | leader integrates supported findings | mu+lambda survival on steering accuracy |
+| **Measured advantage** | shared memory beat independent researchers by +0.043 [+0.004, +0.083] at budget 1500 and +0.112 [+0.073, +0.152] at 2500 (it removes wasted repeats: 2.3 repeats/run without sharing, 0 with) | beat random search by a wide margin (0.930 vs 0.753 at budget 6000) |
+| **Measured limitation** | the advantage vanishes once budget is generous (-0.018 at 4000, CI [-0.038, +0.004]) | recombination added nothing over mutation alone (0.930 vs 0.948) and collapsed diversity (0.09 vs 0.18 Jaccard) |
+| Choose when | budget is tight and several workers could duplicate each other | the search space is broad and you want many independent starting points; check that recombination is actually pulling its weight |
+
+**One-sentence takeaway.** Coordination (shared memory) helps most when work is scarce and duplication is the main waste; population
+mechanisms need a measurement of whether their *recombination* step earns its keep, because here it did not.
+
+
+
+######## lab_10_12_compare_workflow.py ########
+# 10.12 RSIFlow-style vs Self-HPO-style adaptation (measured on the ingredient-parser testbed)
+
+RSIFlow mechanism: course summary of arXiv:2610.21791 (not the paper). Self-HPO: arXiv:2610.22791 (abstract verified).
+Our implementations are miniatures: numbers describe *this testbed only*.
+
+| Aspect | RSIFlow style | Self-HPO style |
+|---|---|---|
+| What adapts | the workflow's stage routing (dedup / guard / diagnose) | the harness (guard + search set) AND the policy's edit preferences |
+| Trigger | measured waste in the last 8 cycles | every round (H-step then P-step) |
+| What learns | nothing numerical: rule-based meta-agent | the policy by REINFORCE; the harness proposer by a bandit |
+| **Measured benefit** | beat the static pipeline by +0.250 [+0.172, +0.337] at budget 6000 | at budget 12000: joint vs no-adaptation +0.034 [-0.032, +0.094] (not distinguishable from 0) |
+| **Measured cost / limit** | lost to simply turning every stage on from the start (-0.245 [-0.328, -0.164]) because of detection latency (stages switched on at cycles 17/29/48) | the H-step is a fixed overhead: at budget 6000 it took 85% of the budget and the joint method scored 0.352 vs 0.691 for no adaptation |
+| Paper claim 'joint > sum of parts' | n/a | NOT reproduced here: synergy at 12000 = -0.016 [-0.060, +0.025] |
+| Prefer when | stages are costly to run all the time and the bottleneck really changes | there is a learnable policy AND a harness worth searching, and budget is large enough to amortise the H-step |
+
+**Takeaway.** Both ideas hinge on an overhead-versus-benefit trade that the headline numbers hide. The honest comparison for adaptive routing is
+'always on', and for harness search it is 'spend that budget on more policy updates'.
+
+
+ALL LABS DONE

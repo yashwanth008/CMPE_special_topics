@@ -1,0 +1,26 @@
+{
+  "Budget RSI readout": {
+    "calib_parent_steer": 960.0,
+    "calib_label_fit": 2304.0,
+    "search_steer": 2000.0
+  },
+  "Budget RSI oracle": {
+    "search_steer": 17360.0
+  },
+  "Self-HPO (B=12000)": {
+    "init": 24.0,
+    "hstep_mine": 480.0,
+    "hstep_val": 960.0,
+    "hstep_probe": 3732.0,
+    "train": 6752.0
+  },
+  "Workflow adaptive (B=6000)": {
+    "steer": 3760.0,
+    "probe": 2046.0,
+    "smoke": 192.0
+  },
+  "SO-RSI (B=8000)": {
+    "steer (candidate eval)": 5610.0,
+    "probe (diagnosis)": 2390.0
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "anomalies_on_trace": [
+    [
+      "swap operands",
+      false
+    ],
+    [
+      "use subtraction",
+      false
+    ],
+    [
+      "revert to a+b",
+      false
+    ],
+    [
+      "add int casts",
+      false
+    ],
+    [
+      "revert to a+b",
+      false
+    ]
+  ],
+  "root_cause": "fixture args (2,4) instead of (2,3)",
+  "reference_result": 6
+}

@@ -1,0 +1,236 @@
+[
+  {
+    "cat": "pinch",
+    "edit": "pinch_qty",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 2,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "paren",
+    "edit": "note_paren",
+    "blocker": "punct_stripper",
+    "gain": 1.0,
+    "step": 3,
+    "status": "resolved",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "mixed",
+    "edit": "mixed_pattern_drops_whole",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 10,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "unicode",
+    "edit": "unicode_fraction_half_only",
+    "blocker": "mixed_pattern_drops_whole",
+    "gain": 0.75,
+    "step": 12,
+    "status": "resolved",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "pinch",
+    "edit": "pinch_qty",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 17,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "range",
+    "edit": "range_pattern_lower_bound",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 18,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "fraction",
+    "edit": "frac_pattern",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 19,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "synonym",
+    "edit": "unit_abbrev_extra",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 20,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "mixed",
+    "edit": "mixed_pattern_drops_whole",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 21,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "paren",
+    "edit": "note_paren",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 23,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "note",
+    "edit": "note_comma",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 30,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "unicode",
+    "edit": "unicode_fraction_half_only",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 31,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "pinch",
+    "edit": "pinch_unit",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 32,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "mixed",
+    "edit": "mixed_pattern_drops_whole",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 36,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "range",
+    "edit": "range_pattern_lower_bound",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 38,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "unicode",
+    "edit": "unicode_fraction_map",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 41,
+    "status": "inconclusive",
+    "trigger": "mismatch"
+  },
+  {
+    "cat": "fraction",
+    "edit": "frac_pattern",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 48,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "unicode",
+    "edit": "unicode_fraction_map",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 52,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "range",
+    "edit": "range_pattern_lower_bound",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 54,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "note",
+    "edit": "note_comma",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 55,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "mixed",
+    "edit": "mixed_pattern",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 56,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "unicode",
+    "edit": "unicode_fraction_half_only",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 63,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "pinch",
+    "edit": "pinch_qty",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 64,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "fraction",
+    "edit": "frac_pattern",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 66,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "synonym",
+    "edit": "unit_abbrev_extra",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 67,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  },
+  {
+    "cat": "note",
+    "edit": "note_comma",
+    "blocker": null,
+    "gain": 0.0,
+    "step": 69,
+    "status": "inconclusive",
+    "trigger": "recurrence"
+  }
+]
