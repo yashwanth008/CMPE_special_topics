@@ -1,0 +1,9 @@
+google-adk>=1.20,<3
+mcp>=1.9,<2
+python-dotenv
+fastapi
+uvicorn
+pytest
+sqlalchemy
+aiosqlite
+httpx

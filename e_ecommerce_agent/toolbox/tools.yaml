@@ -1,0 +1,40 @@
+# MCP Toolbox for Databases config: serves the *read* tools straight from AlloyDB.
+# Run:  toolbox --tools-file toolbox/tools.yaml     then set MCP_SHOP_URL=http://127.0.0.1:5000/mcp
+# NOT executed in this repo's tests (needs a live AlloyDB instance) - treat as a starting point.
+sources:
+  shop-db:
+    kind: alloydb-postgres
+    project: ${PROJECT_ID}
+    region: ${REGION}
+    cluster: ${ALLOYDB_CLUSTER}
+    instance: ${ALLOYDB_INSTANCE}
+    database: ${ALLOYDB_DATABASE}
+    user: ${ALLOYDB_USER}
+    password: ${ALLOYDB_PASSWORD}
+tools:
+  search_products:
+    kind: postgres-sql
+    source: shop-db
+    description: Search products by brand/category/keywords with optional price ceiling in euros.
+    parameters:
+      - {name: brand, type: string, description: "Exact brand or empty string"}
+      - {name: category, type: string, description: "Exact category or empty string"}
+      - {name: max_price_eur, type: float, description: "0 means no limit"}
+    statement: |
+      SELECT id, name, brand, category, price_cents/100.0 AS price_eur, sizes, colors, description
+      FROM products
+      WHERE ($1 = '' OR lower(brand) = lower($1))
+        AND ($2 = '' OR lower(category) = lower($2))
+        AND ($3 = 0 OR price_cents <= $3 * 100)
+      ORDER BY price_cents LIMIT 10;
+  find_nearest_stores:
+    kind: postgres-sql
+    source: shop-db
+    description: Nearest stores to a lat/lon (haversine, km).
+    parameters:
+      - {name: latitude, type: float, description: "Shopper latitude"}
+      - {name: longitude, type: float, description: "Shopper longitude"}
+    statement: |
+      SELECT name, address,
+        2*6371*asin(sqrt(power(sin(radians(lat-$1)/2),2)+cos(radians($1))*cos(radians(lat))*power(sin(radians(lon-$2)/2),2))) AS distance_km
+      FROM stores ORDER BY distance_km LIMIT 3;
